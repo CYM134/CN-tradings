@@ -30,11 +30,15 @@ logger = logging.getLogger(__name__)
 
 
 class WebSocketPushService:
-    """WebSocket推送服务"""
+    """延辽Socket推送服务"""
     
-    def __init__(self):
-        """初始化推送服务"""
-        self.data_manager = RealtimeDataManager()
+    def __init__(self, tushare_token: Optional[str] = None):
+        """初始化推送服务
+        
+        Args:
+            tushare_token: Tushare API token
+        """
+        self.data_manager = RealtimeDataManager(tushare_token=tushare_token)
         self.indicator_engine = RealtimeIndicatorEngine()
         self.signal_engine = RealtimeTradingSignalEngine()
         self.monitor_service = RealtimeMonitorService()

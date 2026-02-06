@@ -4,16 +4,14 @@ from datetime import timedelta
 class Config:
     """简化配置类 - 用于演示"""
     
-    # 数据库配置 - 可以选择SQLite或MySQL
-
-    # 选项1: SQLite数据库 (默认，适合开发和演示)
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///stock_analysis.db'
-
-    # 选项2: MySQL数据库 (适合生产环境)
-    # 请先创建数据库: CREATE DATABASE stock_analysis CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-    # SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:your_password@localhost/stock_analysis?charset=utf8mb4'
-
+    # 数据库配置 - MySQL数据库
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://ai_market:kGCr8W67S7HMcepR@117.72.178.88:3306/ai_market?charset=utf8mb4'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_size': 10,
+        'pool_recycle': 3600,
+        'pool_pre_ping': True
+    }
     
     # Flask配置
     SECRET_KEY = 'demo-secret-key-for-testing'
@@ -63,7 +61,8 @@ class Config:
     SOCKETIO_ASYNC_MODE = 'eventlet'
     
     # 数据源配置
-    TUSHARE_TOKEN = os.getenv('TUSHARE_TOKEN', '')
+    # Tushare Token: 在 https://tushare.pro 注册获取，直接在此处填写
+    TUSHARE_TOKEN = os.getenv('TUSHARE_TOKEN', 'cb24317ed14a548f2eb70fd0d6526d4826c28ac8d78c3e25ef43eed0')  # 在此填写你的token或在.env文件中设置
     AKSHARE_ENABLED = True
     
     # AI分析配置
@@ -93,13 +92,6 @@ class Config:
     # 安全配置
     WTF_CSRF_ENABLED = False  # 简化演示，生产环境应启用
     WTF_CSRF_TIME_LIMIT = None
-    
-    # 数据库连接池配置
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        'pool_size': 5,
-        'pool_recycle': 3600,
-        'pool_pre_ping': True
-    }
 
 class DevelopmentConfig(Config):
     """开发环境配置"""

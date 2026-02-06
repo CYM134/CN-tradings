@@ -1,23 +1,29 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-数据收集脚本
-从各种数据源收集股票数据
+数据收集脚本 - 适配MySQL数据库
+生成示例数据到stock_basic和stock_daily_history表
 """
 
 import os
 import sys
-import sqlite3
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import logging
 import time
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 # 添加项目根目录到路径
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from config_simple import DevelopmentConfig
+from app.models.stock_basic import StockBasic
+from app.models.stock_daily_history import StockDailyHistory
+
 # 配置日志
+os.makedirs('logs', exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -29,342 +35,319 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class DataCollector:
-    """数据收集器"""
+    """数据收集器 - MySQL版本"""
     
     def __init__(self):
-        self.db_path = 'stock_analysis.db'
-        self.init_database()
-    
-    def get_db_connection(self):
-        """获取数据库连接"""
-        try:
-            conn = sqlite3.connect(self.db_path)
-            conn.row_factory = sqlite3.Row
-            return conn
-        except Exception as e:
-            logger.error(f"数据库连接失败: {e}")
-            return None
-    
-    def init_database(self):
-        """初始化数据库"""
-        conn = self.get_db_connection()
-        if not conn:
-            return False
+        """初始化数据库连接"""
+        config = DevelopmentConfig()
+        self.db_uri = config.SQLALCHEMY_DATABASE_URI
         
-        try:
-            cursor = conn.cursor()
-            
-            # 创建股票基本信息表
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS stock_info (
-                    stock_code TEXT PRIMARY KEY,
-                    stock_name TEXT,
-                    industry TEXT,
-                    market TEXT,
-                    list_date DATE,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            ''')
-            
-            # 创建股票价格数据表
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS stock_prices (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    stock_code TEXT NOT NULL,
-                    trade_date DATE NOT NULL,
-                    open_price REAL,
-                    high_price REAL,
-                    low_price REAL,
-                    close_price REAL,
-                    volume REAL,
-                    amount REAL,
-                    change_percent REAL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(stock_code, trade_date)
-                )
-            ''')
-            
-            # 创建财务数据表
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS financial_data (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    stock_code TEXT NOT NULL,
-                    report_date DATE NOT NULL,
-                    revenue REAL,
-                    net_profit REAL,
-                    total_assets REAL,
-                    total_equity REAL,
-                    pe_ratio REAL,
-                    pb_ratio REAL,
-                    roe REAL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(stock_code, report_date)
-                )
-            ''')
-            
-            conn.commit()
-            logger.info("数据库初始化成功")
-            return True
-            
-        except Exception as e:
-            logger.error(f"数据库初始化失败: {e}")
-            return False
-        finally:
-            conn.close()
+        # 创建数据库引擎
+        self.engine = create_engine(self.db_uri, pool_pre_ping=True)
+        Session = sessionmaker(bind=self.engine)
+        self.session = Session()
+        
+        logger.info(f"✅ 数据库连接成功: {self.db_uri.split('@')[-1]}")
     
     def generate_sample_stock_info(self):
-        """生成示例股票基本信息"""
+        """生成示例股票基本信息 - 使用Tushare格式的股票代码"""
         sample_stocks = [
-            ('000001', '平安银行', '银行', '深圳主板', '1991-04-03'),
-            ('000002', '万科A', '房地产', '深圳主板', '1991-01-29'),
-            ('600000', '浦发银行', '银行', '上海主板', '1999-11-10'),
-            ('600036', '招商银行', '银行', '上海主板', '2002-04-09'),
-            ('000858', '五粮液', '食品饮料', '深圳主板', '1998-04-27'),
-            ('002415', '海康威视', '电子', '深圳中小板', '2010-05-28'),
-            ('300059', '东方财富', '非银金融', '创业板', '2010-03-19'),
-            ('000063', '中兴通讯', '通信', '深圳主板', '1997-11-18'),
-            ('600519', '贵州茅台', '食品饮料', '上海主板', '2001-08-27'),
-            ('000166', '申万宏源', '非银金融', '深圳主板', '1994-06-17')
+            ('000001.SZ', '000001', '平安银行', '深圳', '银行', '1991-04-03'),
+            ('000002.SZ', '000002', '万科A', '深圳', '房地产', '1991-01-29'),
+            ('600000.SH', '600000', '浦发银行', '上海', '银行', '1999-11-10'),
+            ('600036.SH', '600036', '招商银行', '上海', '银行', '2002-04-09'),
+            ('000858.SZ', '000858', '五粮液', '四川', '食品饮料', '1998-04-27'),
+            ('002415.SZ', '002415', '海康威视', '浙江', '电子', '2010-05-28'),
+            ('300059.SZ', '300059', '东方财富', '上海', '非银金融', '2010-03-19'),
+            ('000063.SZ', '000063', '中兴通讯', '广东', '通信', '1997-11-18'),
+            ('600519.SH', '600519', '贵州茅台', '贵州', '食品饮料', '2001-08-27'),
+            ('601318.SH', '601318', '中国平安', '广东', '非银金融', '2007-03-01')
         ]
         
         return sample_stocks
     
     def collect_stock_info(self):
-        """收集股票基本信息"""
-        logger.info("开始收集股票基本信息...")
-        
-        conn = self.get_db_connection()
-        if not conn:
-            return False
+        """收集股票基本信息到stock_basic表"""
+        logger.info("\n" + "="*60)
+        logger.info("📥 开始收集股票基本信息...")
+        logger.info("="*60)
         
         try:
-            cursor = conn.cursor()
             sample_stocks = self.generate_sample_stock_info()
+            success_count = 0
             
-            for stock_code, stock_name, industry, market, list_date in sample_stocks:
-                cursor.execute('''
-                    INSERT OR REPLACE INTO stock_info 
-                    (stock_code, stock_name, industry, market, list_date)
-                    VALUES (?, ?, ?, ?, ?)
-                ''', (stock_code, stock_name, industry, market, list_date))
+            for ts_code, symbol, name, area, industry, list_date_str in sample_stocks:
+                try:
+                    # 转换日期格式
+                    list_date = datetime.strptime(list_date_str, '%Y-%m-%d').date()
+                    
+                    # 检查是否已存在
+                    existing = self.session.query(StockBasic).filter_by(ts_code=ts_code).first()
+                    
+                    if existing:
+                        # 更新现有记录
+                        existing.symbol = symbol
+                        existing.name = name
+                        existing.area = area
+                        existing.industry = industry
+                        existing.list_date = list_date
+                        logger.info(f"🔄 {ts_code} ({name}): 更新基本信息")
+                    else:
+                        # 插入新记录
+                        stock_basic = StockBasic(
+                            ts_code=ts_code,
+                            symbol=symbol,
+                            name=name,
+                            area=area,
+                            industry=industry,
+                            list_date=list_date
+                        )
+                        self.session.add(stock_basic)
+                        logger.info(f"✅ {ts_code} ({name}): 新增基本信息")
+                    
+                    success_count += 1
+                    
+                except Exception as e:
+                    logger.error(f"❌ {ts_code}: 处理失败 - {str(e)}")
+                    continue
             
-            conn.commit()
-            logger.info(f"成功收集{len(sample_stocks)}只股票的基本信息")
+            # 提交事务
+            self.session.commit()
+            logger.info(f"\n✅ 股票基本信息收集完成: {success_count}/{len(sample_stocks)}")
             return True
             
         except Exception as e:
+            self.session.rollback()
             logger.error(f"收集股票基本信息失败: {e}")
             return False
-        finally:
-            conn.close()
     
-    def generate_sample_price_data(self, stock_code, days=30):
-        """生成示例价格数据"""
-        np.random.seed(hash(stock_code) % 2**32)
+    def generate_sample_price_data(self, ts_code, days=365):
+        """生成示例价格数据（近1年）"""
+        # 使用股票代码的哈希作为随机种子，保证每次生成相同
+        np.random.seed(hash(ts_code) % 2**32)
         
-        # 基础价格
-        base_price = np.random.uniform(10, 200)
+        # 根据股票不同设置不同的基础价格
+        if '600519' in ts_code:  # 贵州茅台
+            base_price = 1800.0
+        elif '601318' in ts_code:  # 中国平安
+            base_price = 55.0
+        elif '300059' in ts_code:  # 东方财富
+            base_price = 18.0
+        elif '000858' in ts_code:  # 五粮液
+            base_price = 180.0
+        elif '600036' in ts_code or '600000' in ts_code:  # 银行股
+            base_price = 35.0
+        else:
+            base_price = np.random.uniform(10, 100)
         
         # 生成价格序列
         prices = []
         current_price = base_price
         
         for i in range(days):
-            # 随机波动
-            change = np.random.normal(0, 0.02)  # 2%的日波动
-            current_price *= (1 + change)
+            # 随机波动（符合A股特点）
+            change_pct = np.random.normal(0, 0.02)  # 2%的标准差
+            # 限制涨跌幅在±10%以内
+            change_pct = max(min(change_pct, 0.10), -0.10)
+            current_price *= (1 + change_pct)
             
             # 确保价格为正
-            current_price = max(current_price, 1.0)
+            current_price = max(current_price, 0.01)
             
             # 生成OHLC数据
-            high = current_price * np.random.uniform(1.0, 1.05)
-            low = current_price * np.random.uniform(0.95, 1.0)
+            high = current_price * np.random.uniform(1.0, 1.03)
+            low = current_price * np.random.uniform(0.97, 1.0)
             open_price = np.random.uniform(low, high)
             close_price = current_price
             
-            # 成交量
-            volume = int(np.random.uniform(1000000, 50000000))
-            amount = volume * close_price
+            # 成交量（手）
+            volume = int(np.random.uniform(100000, 10000000))
+            # 成交额（千元）
+            amount = volume * close_price / 10  # 转换为千元
             
-            # 涨跌幅
-            if i > 0:
-                change_percent = (close_price - prices[i-1]['close_price']) / prices[i-1]['close_price'] * 100
+            # 交易日期（往前推）
+            trade_date = (datetime.now() - timedelta(days=days-i-1)).date()
+            
+            # 跳过周末（简化处理）
+            if trade_date.weekday() >= 5:
+                continue
+            
+            # 计算涨跌额和涨跌幅
+            if len(prices) > 0:
+                pre_close = prices[-1]['close']
+                change = close_price - pre_close
+                pct_chg = (change / pre_close) * 100
             else:
-                change_percent = 0
-            
-            trade_date = (datetime.now() - timedelta(days=days-i-1)).strftime('%Y-%m-%d')
+                pre_close = current_price
+                change = 0
+                pct_chg = 0
             
             prices.append({
-                'stock_code': stock_code,
+                'ts_code': ts_code,
                 'trade_date': trade_date,
-                'open_price': round(open_price, 2),
-                'high_price': round(high, 2),
-                'low_price': round(low, 2),
-                'close_price': round(close_price, 2),
-                'volume': volume,
-                'amount': round(amount, 2),
-                'change_percent': round(change_percent, 2)
+                'open': round(open_price, 2),
+                'high': round(high, 2),
+                'low': round(low, 2),
+                'close': round(close_price, 2),
+                'pre_close': round(pre_close, 2),
+                'change': round(change, 2),
+                'pct_chg': round(pct_chg, 2),
+                'vol': volume,
+                'amount': round(amount, 2)
             })
         
         return prices
     
-    def collect_price_data(self, stock_codes=None, days=30):
-        """收集股票价格数据"""
-        if stock_codes is None:
-            stock_codes = [info[0] for info in self.generate_sample_stock_info()]
+    def collect_price_data(self, ts_codes=None, days=365):
+        """收集股票价格数据到stock_daily_history表（近1年）"""
+        if ts_codes is None:
+            ts_codes = [info[0] for info in self.generate_sample_stock_info()]
         
-        logger.info(f"开始收集{len(stock_codes)}只股票的价格数据...")
-        
-        conn = self.get_db_connection()
-        if not conn:
-            return False
+        logger.info("\n" + "="*60)
+        logger.info(f"📥 开始收集{len(ts_codes)}只股票的日线数据...")
+        logger.info(f"📅 时间范围: 近{days}天（约1年）")
+        logger.info("="*60)
         
         try:
-            cursor = conn.cursor()
             total_records = 0
             
-            for stock_code in stock_codes:
-                logger.info(f"收集股票{stock_code}的价格数据...")
-                
-                price_data = self.generate_sample_price_data(stock_code, days)
-                
-                for data in price_data:
-                    cursor.execute('''
-                        INSERT OR REPLACE INTO stock_prices 
-                        (stock_code, trade_date, open_price, high_price, low_price, 
-                         close_price, volume, amount, change_percent)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (
-                        data['stock_code'], data['trade_date'], data['open_price'],
-                        data['high_price'], data['low_price'], data['close_price'],
-                        data['volume'], data['amount'], data['change_percent']
-                    ))
-                
-                total_records += len(price_data)
-                time.sleep(0.1)  # 避免过快请求
+            for ts_code in ts_codes:
+                try:
+                    logger.info(f"📊 收集 {ts_code} 的价格数据...")
+                    
+                    price_data = self.generate_sample_price_data(ts_code, days)
+                    count = 0
+                    
+                    for data in price_data:
+                        # 检查是否已存在
+                        existing = self.session.query(StockDailyHistory).filter_by(
+                            ts_code=data['ts_code'],
+                            trade_date=data['trade_date']
+                        ).first()
+                        
+                        if existing:
+                            # 更新现有记录
+                            existing.open = data['open']
+                            existing.high = data['high']
+                            existing.low = data['low']
+                            existing.close = data['close']
+                            existing.pre_close = data['pre_close']
+                            existing.change = data['change']
+                            existing.pct_chg = data['pct_chg']
+                            existing.vol = data['vol']
+                            existing.amount = data['amount']
+                        else:
+                            # 插入新记录
+                            daily_data = StockDailyHistory(
+                                ts_code=data['ts_code'],
+                                trade_date=data['trade_date'],
+                                open=data['open'],
+                                high=data['high'],
+                                low=data['low'],
+                                close=data['close'],
+                                pre_close=data['pre_close'],
+                                change=data['change'],
+                                pct_chg=data['pct_chg'],
+                                vol=data['vol'],
+                                amount=data['amount']
+                            )
+                            self.session.add(daily_data)
+                        
+                        count += 1
+                    
+                    # 每个股票提交一次
+                    self.session.commit()
+                    total_records += count
+                    logger.info(f"✅ {ts_code}: 已保存 {count} 条数据")
+                    
+                except Exception as e:
+                    self.session.rollback()
+                    logger.error(f"❌ {ts_code}: 收集失败 - {str(e)}")
+                    continue
             
-            conn.commit()
-            logger.info(f"成功收集{total_records}条价格数据")
+            logger.info(f"\n✅ 日线数据收集完成，共 {total_records} 条记录")
             return True
             
         except Exception as e:
+            self.session.rollback()
             logger.error(f"收集价格数据失败: {e}")
             return False
-        finally:
-            conn.close()
     
-    def generate_sample_financial_data(self, stock_code):
-        """生成示例财务数据"""
-        np.random.seed(hash(stock_code) % 2**32)
+    def verify_data(self, ts_codes=None):
+        """验证下载的数据"""
+        if ts_codes is None:
+            ts_codes = [info[0] for info in self.generate_sample_stock_info()]
         
-        # 生成最近4个季度的财务数据
-        financial_data = []
-        base_date = datetime.now()
+        logger.info("\n" + "="*60)
+        logger.info("🔍 验证下载的数据...")
+        logger.info("="*60)
         
-        for i in range(4):
-            # 报告期
-            quarter = (base_date.month - 1) // 3 + 1 - i
-            year = base_date.year
-            if quarter <= 0:
-                quarter += 4
-                year -= 1
+        for ts_code in ts_codes:
+            # 查询基本信息
+            basic = self.session.query(StockBasic).filter_by(ts_code=ts_code).first()
+            if not basic:
+                logger.warning(f"⚠️  {ts_code}: 未找到基本信息")
+                continue
             
-            report_date = f"{year}-{quarter*3:02d}-30"
+            # 查询历史数据条数
+            count = self.session.query(StockDailyHistory).filter_by(ts_code=ts_code).count()
             
-            # 财务指标
-            revenue = np.random.uniform(1000000000, 50000000000)  # 营收
-            net_profit = revenue * np.random.uniform(0.05, 0.25)  # 净利润
-            total_assets = revenue * np.random.uniform(2, 8)  # 总资产
-            total_equity = total_assets * np.random.uniform(0.3, 0.7)  # 净资产
-            pe_ratio = np.random.uniform(10, 50)  # 市盈率
-            pb_ratio = np.random.uniform(1, 10)  # 市净率
-            roe = net_profit / total_equity * 100  # ROE
+            # 查询最新和最早日期
+            from sqlalchemy import desc, asc
+            latest = self.session.query(StockDailyHistory).filter_by(ts_code=ts_code).order_by(
+                desc(StockDailyHistory.trade_date)
+            ).first()
             
-            financial_data.append({
-                'stock_code': stock_code,
-                'report_date': report_date,
-                'revenue': round(revenue, 2),
-                'net_profit': round(net_profit, 2),
-                'total_assets': round(total_assets, 2),
-                'total_equity': round(total_equity, 2),
-                'pe_ratio': round(pe_ratio, 2),
-                'pb_ratio': round(pb_ratio, 2),
-                'roe': round(roe, 2)
-            })
-        
-        return financial_data
+            earliest = self.session.query(StockDailyHistory).filter_by(ts_code=ts_code).order_by(
+                asc(StockDailyHistory.trade_date)
+            ).first()
+            
+            if latest and earliest:
+                logger.info(
+                    f"✅ {ts_code} ({basic.name}): "
+                    f"{count} 条数据 | "
+                    f"范围: {earliest.trade_date} ~ {latest.trade_date} | "
+                    f"最新价: ¥{latest.close} | "
+                    f"涨跌幅: {latest.pct_chg:+.2f}%"
+                )
+            else:
+                logger.warning(f"⚠️  {ts_code} ({basic.name}): 无历史数据")
     
-    def collect_financial_data(self, stock_codes=None):
-        """收集财务数据"""
-        if stock_codes is None:
-            stock_codes = [info[0] for info in self.generate_sample_stock_info()]
-        
-        logger.info(f"开始收集{len(stock_codes)}只股票的财务数据...")
-        
-        conn = self.get_db_connection()
-        if not conn:
-            return False
-        
-        try:
-            cursor = conn.cursor()
-            total_records = 0
-            
-            for stock_code in stock_codes:
-                logger.info(f"收集股票{stock_code}的财务数据...")
-                
-                financial_data = self.generate_sample_financial_data(stock_code)
-                
-                for data in financial_data:
-                    cursor.execute('''
-                        INSERT OR REPLACE INTO financial_data 
-                        (stock_code, report_date, revenue, net_profit, total_assets,
-                         total_equity, pe_ratio, pb_ratio, roe)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ''', (
-                        data['stock_code'], data['report_date'], data['revenue'],
-                        data['net_profit'], data['total_assets'], data['total_equity'],
-                        data['pe_ratio'], data['pb_ratio'], data['roe']
-                    ))
-                
-                total_records += len(financial_data)
-                time.sleep(0.1)
-            
-            conn.commit()
-            logger.info(f"成功收集{total_records}条财务数据")
-            return True
-            
-        except Exception as e:
-            logger.error(f"收集财务数据失败: {e}")
-            return False
-        finally:
-            conn.close()
+    def close(self):
+        """关闭数据库连接"""
+        self.session.close()
+        logger.info("\n✅ 数据库连接已关闭")
     
     def run_data_collection(self):
         """执行数据收集"""
-        logger.info("开始执行数据收集任务...")
+        logger.info("\n" + "="*70)
+        logger.info("🚀 开始执行数据收集任务...")
+        logger.info("="*70)
         
         try:
-            # 收集股票基本信息
+            # 1. 收集股票基本信息
             if not self.collect_stock_info():
-                logger.error("股票基本信息收集失败")
+                logger.error("❌ 股票基本信息收集失败")
                 return False
             
-            # 收集价格数据
-            if not self.collect_price_data():
-                logger.error("价格数据收集失败")
+            # 2. 收集近1年的价格数据
+            if not self.collect_price_data(days=365):
+                logger.error("❌ 价格数据收集失败")
                 return False
             
-            # 收集财务数据
-            if not self.collect_financial_data():
-                logger.error("财务数据收集失败")
-                return False
+            # 3. 验证数据
+            self.verify_data()
             
-            logger.info("数据收集任务执行完成")
+            logger.info("\n" + "="*70)
+            logger.info("✅ 数据收集任务执行完成")
+            logger.info("💡 提示: 现在可以访问前端「股票列表」页面查看数据")
+            logger.info("="*70)
             return True
             
         except Exception as e:
-            logger.error(f"数据收集任务执行失败: {e}")
+            logger.error(f"❌ 数据收集任务执行失败: {e}")
+            import traceback
+            traceback.print_exc()
             return False
 
 def main():

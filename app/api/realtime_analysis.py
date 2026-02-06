@@ -3,7 +3,7 @@
 提供实时数据管理、技术指标、交易信号等功能的API接口
 """
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from app.services.realtime_data_manager import RealtimeDataManager
 from app.models.stock_minute_data import StockMinuteData
 from app.extensions import db
@@ -15,8 +15,16 @@ logger = logging.getLogger(__name__)
 # 创建蓝图
 realtime_analysis_bp = Blueprint('realtime_analysis', __name__, url_prefix='/api/realtime-analysis')
 
-# 初始化数据管理器
-data_manager = RealtimeDataManager()
+# 全局数据管理器（延迟初始化）
+_data_manager = None
+
+def get_data_manager():
+    """获取数据管理器实例"""
+    global _data_manager
+    if _data_manager is None:
+        token = current_app.config.get('TUSHARE_TOKEN', '')
+        _data_manager = RealtimeDataManager(tushare_token=token if token else None)
+    return _data_manager
 
 
 @realtime_analysis_bp.route('/data/sync', methods=['POST'])
@@ -37,7 +45,7 @@ def sync_minute_data():
             }), 400
         
         # 执行数据同步
-        result = data_manager.sync_minute_data(
+        result = get_data_manager().sync_minute_data(
             ts_code, start_date, end_date, period_type, use_baostock
         )
         
@@ -70,7 +78,7 @@ def sync_multiple_stocks():
             }), 400
         
         # 执行批量同步
-        result = data_manager.sync_multiple_stocks_data(
+        result = get_data_manager().sync_multiple_stocks_data(
             stock_list, period_type, start_date, end_date, batch_size, use_baostock
         )
         
@@ -100,8 +108,8 @@ def sync_all_periods():
                 'message': '股票代码不能为空'
             }), 400
         
-        # 执行所有周期同步
-        result = data_manager.sync_all_periods_for_stock(
+        # 执行多周期同步
+        result = get_data_manager().sync_all_periods_for_stock(
             ts_code, start_date, end_date, use_baostock
         )
         
@@ -122,7 +130,7 @@ def sync_all_periods():
 def get_stock_list():
     """获取数据库中的股票列表"""
     try:
-        stock_list = data_manager.get_stock_list_from_db()
+        stock_list = get_data_manager().get_stock_list_from_db()
         
         return jsonify({
             'success': True,
@@ -204,7 +212,7 @@ def aggregate_data():
             }), 400
         
         # 执行数据聚合
-        result = data_manager.aggregate_data(
+        result = get_data_manager().aggregate_data(
             ts_code, source_period, target_period, start_date, end_date
         )
         
@@ -233,7 +241,7 @@ def check_data_quality():
             }), 400
         
         # 检查数据质量
-        result = data_manager.check_data_quality(ts_code, period_type, hours)
+        result = get_data_manager().check_data_quality(ts_code, period_type, hours)
         
         return jsonify({
             'success': True,
@@ -328,7 +336,7 @@ def get_realtime_price():
             }), 400
         
         # 获取实时价格
-        result = data_manager.get_realtime_price(ts_code)
+        result = get_data_manager().get_realtime_price(ts_code)
         
         return jsonify(result)
         
@@ -345,7 +353,7 @@ def get_market_overview():
     """获取市场概览"""
     try:
         # 获取市场概览
-        result = data_manager.get_market_overview()
+        result = get_data_manager().get_market_overview()
         
         return jsonify(result)
         
@@ -418,7 +426,7 @@ def batch_sync_data():
         
         for ts_code in stock_codes:
             try:
-                result = data_manager.sync_minute_data(ts_code, start_date, end_date)
+                result = get_data_manager().sync_minute_data(ts_code, start_date, end_date)
                 results.append({
                     'ts_code': ts_code,
                     'result': result

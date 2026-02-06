@@ -9,14 +9,15 @@ class Config:
     """基础配置类"""
     
     # 数据库配置
-    DB_HOST = os.getenv('DB_HOST', 'localhost')
-    DB_USER = os.getenv('DB_USER', 'root')
-    DB_PASSWORD = os.getenv('DB_PASSWORD', 'root')
-    DB_NAME = os.getenv('DB_NAME', 'stock_cursor')
+    DB_HOST = os.getenv('DB_HOST', '117.72.178.88')
+    DB_PORT = os.getenv('DB_PORT', '3306')
+    DB_USER = os.getenv('DB_USER', 'ai_market')
+    DB_PASSWORD = os.getenv('DB_PASSWORD', 'kGCr8W67S7HMcepR')
+    DB_NAME = os.getenv('DB_NAME', 'ai_market')
     DB_CHARSET = os.getenv('DB_CHARSET', 'utf8mb4')
     
     # SQLAlchemy配置
-    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}?charset={DB_CHARSET}"
+    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset={DB_CHARSET}"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_size': 10,
