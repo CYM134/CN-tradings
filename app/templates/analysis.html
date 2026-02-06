@@ -26,20 +26,37 @@
     justify-content: center;
     z-index: 10;
 }
+#metrics-section {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: space-between;
+    gap: 15px;
+}
+#metrics-section > div {
+    flex: 1;
+    min-width: 0;
+    max-width: 25%;
+}
 .metric-card {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border-radius: 10px;
     padding: 20px;
-    margin-bottom: 20px;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 .metric-value {
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: bold;
+    line-height: 1.2;
 }
 .metric-label {
     font-size: 0.9rem;
     opacity: 0.8;
+    margin-top: 8px;
 }
 .chart-tabs {
     border-bottom: 1px solid #dee2e6;
@@ -129,26 +146,26 @@
     </div>
 
     <!-- 关键指标 -->
-    <div id="metrics-section" class="row mb-4" style="display: none;">
-        <div class="col-md-3">
+    <div id="metrics-section" class="mb-4" style="display: none;">
+        <div>
             <div class="metric-card text-center">
                 <div class="metric-value" id="current-price">--</div>
                 <div class="metric-label">当前价格</div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div>
             <div class="metric-card text-center">
                 <div class="metric-value" id="price-change">--</div>
                 <div class="metric-label">涨跌幅</div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div>
             <div class="metric-card text-center">
                 <div class="metric-value" id="volume">--</div>
                 <div class="metric-label">成交量</div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div>
             <div class="metric-card text-center">
                 <div class="metric-value" id="turnover">--</div>
                 <div class="metric-label">成交额</div>
