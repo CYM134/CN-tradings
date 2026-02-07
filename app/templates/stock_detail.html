@@ -37,22 +37,22 @@
                 <div class="card-header bg-white border-bottom px-4 pt-4 pb-0">
                     <ul class="nav nav-tabs border-bottom-0 gap-3" id="stockTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active px-4 py-2 fw-medium border-0 border-bottom border-2 border-primary" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">
+                            <button class="nav-link active px-4 py-2 fw-medium border-0 border-bottom border-2 border-primary" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" onclick="handleTabClick(this)">
                                 📈 历史数据
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link px-4 py-2 fw-medium border-0 text-muted" id="factors-tab" data-bs-toggle="tab" data-bs-target="#factors" type="button" role="tab">
+                            <button class="nav-link px-4 py-2 fw-medium border-0 text-muted" id="factors-tab" data-bs-toggle="tab" data-bs-target="#factors" type="button" role="tab" onclick="handleTabClick(this)">
                                 🔢 技术因子
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link px-4 py-2 fw-medium border-0 text-muted" id="moneyflow-tab" data-bs-toggle="tab" data-bs-target="#moneyflow" type="button" role="tab">
+                            <button class="nav-link px-4 py-2 fw-medium border-0 text-muted" id="moneyflow-tab" data-bs-toggle="tab" data-bs-target="#moneyflow" type="button" role="tab" onclick="handleTabClick(this)">
                                 💰 资金流向
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link px-4 py-2 fw-medium border-0 text-muted" id="cyq-tab" data-bs-toggle="tab" data-bs-target="#cyq" type="button" role="tab">
+                            <button class="nav-link px-4 py-2 fw-medium border-0 text-muted" id="cyq-tab" data-bs-toggle="tab" data-bs-target="#cyq" type="button" role="tab" onclick="handleTabClick(this)">
                                 🎯 筹码分布
                             </button>
                         </li>
@@ -65,10 +65,10 @@
                         <div class="tab-pane fade show active" id="history" role="tabpanel">
                             <div class="d-flex justify-content-between align-items-center mb-4">
                                 <h6 class="mb-0 fw-bold">历史价格数据</h6>
-                                <div class="btn-group btn-group-sm bg-light p-1 rounded" role="group">
-                                    <button type="button" class="btn btn-sm btn-white border-0 shadow-sm rounded active-financial" onclick="loadHistoryData(30)">30天</button>
-                                    <button type="button" class="btn btn-sm btn-transparent border-0 text-muted" onclick="loadHistoryData(60)">60天</button>
-                                    <button type="button" class="btn btn-sm btn-transparent border-0 text-muted" onclick="loadHistoryData(120)">120天</button>
+                                <div class="btn-group btn-group-sm bg-light p-1 rounded" role="group" id="history-days-btn-group">
+                                    <button type="button" class="btn btn-sm btn-white border-0 shadow-sm rounded active-financial" onclick="loadHistoryData(30)" data-days="30">30天</button>
+                                    <button type="button" class="btn btn-sm btn-transparent border-0 text-muted" onclick="loadHistoryData(60)" data-days="60">60天</button>
+                                    <button type="button" class="btn btn-sm btn-transparent border-0 text-muted" onclick="loadHistoryData(120)" data-days="120">120天</button>
                                 </div>
                             </div>
                             <div id="history-content">
@@ -250,9 +250,45 @@ function renderStockInfo(stock) {
     container.innerHTML = html;
 }
 
+// 处理标签页切换 - 更新active状态
+function handleTabClick(clickedTab) {
+    // 移除所有标签的active样式
+    document.querySelectorAll('#stockTabs .nav-link').forEach(tab => {
+        tab.classList.remove('active', 'border-primary', 'border-bottom', 'border-2');
+        tab.classList.add('text-muted');
+    });
+    
+    // 给被点击的标签添加active样式
+    clickedTab.classList.add('active', 'border-primary', 'border-bottom', 'border-2');
+    clickedTab.classList.remove('text-muted');
+    
+    // 根据点击的标签加载对应数据
+    const tabId = clickedTab.id;
+    if (tabId === 'factors-tab') {
+        loadFactorsData();
+    } else if (tabId === 'moneyflow-tab') {
+        loadMoneyflowData();
+    } else if (tabId === 'cyq-tab') {
+        loadCyqData();
+    }
+}
+
 // 加载历史数据
 async function loadHistoryData(days = 60) {
     showLoading('history-content');
+    
+    // 更新按钮组样式
+    document.querySelectorAll('#history-days-btn-group button').forEach(btn => {
+        btn.classList.remove('btn-white', 'shadow-sm', 'active-financial');
+        btn.classList.add('btn-transparent', 'text-muted');
+    });
+    
+    // 给当前点击的按钮添加active样式
+    const activeBtn = document.querySelector(`#history-days-btn-group button[data-days="${days}"]`);
+    if (activeBtn) {
+        activeBtn.classList.remove('btn-transparent', 'text-muted');
+        activeBtn.classList.add('btn-white', 'shadow-sm', 'active-financial');
+    }
     
     try {
         const response = await apiRequest(`/stocks/${tsCode}/history?limit=${days}`);
@@ -295,7 +331,7 @@ function renderHistoryData(data, days) {
                     </tr>
                 </thead>
                 <tbody>
-                    ${data.slice(0, 20).map(item => `
+                    ${data.map(item => `
                         <tr>
                             <td><strong>${item.trade_date || '--'}</strong></td>
                             <td>${formatNumber(item.open, 2)}</td>
@@ -312,7 +348,6 @@ function renderHistoryData(data, days) {
                 </tbody>
             </table>
         </div>
-        ${data.length > 20 ? `<div class="text-center"><small class="text-muted">仅显示前20条记录</small></div>` : ''}
     `;
     
     container.innerHTML = html;

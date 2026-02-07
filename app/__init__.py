@@ -22,7 +22,6 @@ def create_app(config_name='default'):
     
     # 注册蓝图
     from app.api import api_bp
-    from app.api.ml_factor_api import ml_factor_bp
     from app.api.text2sql_api import text2sql_bp
     from app.api.realtime_analysis import realtime_analysis_bp
     from app.api.realtime_indicators import realtime_indicators_bp
@@ -31,10 +30,8 @@ def create_app(config_name='default'):
     from app.api.realtime_risk import realtime_risk_bp
     from app.api.realtime_report import realtime_report_bp
     from app.api.websocket_api import websocket_api_bp
-    from app.routes.ml_factor_routes import ml_factor_routes
     from app.routes.realtime_analysis_routes import realtime_analysis_routes
     app.register_blueprint(api_bp, url_prefix='/api')
-    app.register_blueprint(ml_factor_bp)
     app.register_blueprint(text2sql_bp)
     app.register_blueprint(realtime_analysis_bp)
     app.register_blueprint(realtime_indicators_bp, url_prefix='/api/realtime-analysis/indicators')
@@ -43,7 +40,6 @@ def create_app(config_name='default'):
     app.register_blueprint(realtime_risk_bp, url_prefix='/api/realtime-analysis/risk')
     app.register_blueprint(realtime_report_bp, url_prefix='/api/realtime-analysis/reports')
     app.register_blueprint(websocket_api_bp, url_prefix='/api/websocket')
-    app.register_blueprint(ml_factor_routes)
     app.register_blueprint(realtime_analysis_routes)
     
     from app.main import main_bp

@@ -151,7 +151,7 @@ def start_web_server():
         import threading
         def open_browser():
             time.sleep(2)
-            webbrowser.open('http://localhost:5000/ml-factor')
+            webbrowser.open('http://localhost:5000/')
         
         browser_thread = threading.Thread(target=open_browser)
         browser_thread.daemon = True
