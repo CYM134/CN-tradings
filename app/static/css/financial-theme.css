@@ -3,9 +3,9 @@
 /* ===== CSS变量定义 ===== */
 :root {
     /* 主色调 */
-    --primary-color: #1e40af;
-    --primary-light: #3b82f6;
-    --primary-dark: #1e3a8a;
+    --primary-color: #1e3a8a;
+    --primary-light: #2563eb;
+    --primary-dark: #172554;
     
     /* 辅助色 */
     --success-color: #059669;
@@ -80,10 +80,9 @@ body {
 
 /* ===== 导航栏样式 ===== */
 .navbar-financial {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    background-color: var(--primary-dark);
     box-shadow: var(--shadow-md);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .navbar-financial .navbar-brand {
@@ -138,7 +137,7 @@ body {
 
 /* 实时状态指示器 */
 .real-time-indicator {
-    background: linear-gradient(45deg, #10b981, #059669);
+    background-color: #059669;
     color: white;
     padding: var(--spacing-1) var(--spacing-3);
     border-radius: var(--border-radius-xl);
@@ -149,14 +148,7 @@ body {
 }
 
 .real-time-indicator::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    animation: shimmer 2s infinite;
+    display: none;
 }
 
 @keyframes shimmer {
@@ -181,7 +173,7 @@ body {
 
 /* 欢迎横幅 */
 .stock-info-banner {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-color: #0f172a;
     color: white;
     border: none;
     box-shadow: var(--shadow-lg);
@@ -192,8 +184,7 @@ body {
 }
 
 .stock-info-banner .display-4 {
-    font-weight: 700;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-weight: 600;
 }
 
 .stock-info-banner .lead {
@@ -219,7 +210,7 @@ body {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+    background-color: var(--primary-color);
     transform: scaleX(0);
     transition: var(--transition-normal);
 }
@@ -241,7 +232,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--gray-100), var(--gray-50));
+    background-color: var(--gray-100);
     border-radius: var(--border-radius-xl);
     transition: var(--transition-normal);
 }
@@ -252,8 +243,8 @@ body {
 }
 
 .metric-card-enhanced:hover .metric-icon {
-    transform: scale(1.1) rotate(5deg);
-    background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+    transform: scale(1.05);
+    background-color: var(--primary-color);
 }
 
 .metric-card-enhanced:hover .metric-icon i {
@@ -281,64 +272,53 @@ body {
 }
 
 .btn-financial::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: var(--transition-fast);
-}
-
-.btn-financial:hover::before {
-    left: 100%;
+    display: none;
 }
 
 .btn-primary-financial {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    background-color: var(--primary-color);
     border: none;
     color: white;
 }
 
 .btn-primary-financial:hover {
-    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+    background-color: var(--primary-dark);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
 
 .btn-success-financial {
-    background: linear-gradient(135deg, var(--success-color), #10b981);
+    background-color: var(--success-color);
     border: none;
     color: white;
 }
 
 .btn-success-financial:hover {
-    background: linear-gradient(135deg, #047857, var(--success-color));
+    background-color: #047857;
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
 
 .btn-warning-financial {
-    background: linear-gradient(135deg, var(--warning-color), #f59e0b);
+    background-color: var(--warning-color);
     border: none;
     color: white;
 }
 
 .btn-warning-financial:hover {
-    background: linear-gradient(135deg, #b45309, var(--warning-color));
+    background-color: #b45309;
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
 
 .btn-danger-financial {
-    background: linear-gradient(135deg, var(--danger-color), #ef4444);
+    background-color: var(--danger-color);
     border: none;
     color: white;
 }
 
 .btn-danger-financial:hover {
-    background: linear-gradient(135deg, #b91c1c, var(--danger-color));
+    background-color: #b91c1c;
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
 }
@@ -352,7 +332,7 @@ body {
 }
 
 .table-financial thead th {
-    background: linear-gradient(135deg, var(--gray-100), var(--gray-50));
+    background-color: var(--gray-100);
     border: none;
     font-weight: 600;
     color: var(--gray-700);
@@ -390,17 +370,15 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--primary-color), var(--success-color), var(--warning-color));
+    height: 3px;
+    background-color: var(--primary-color);
 }
 
 /* ===== 数字显示 ===== */
 .number-display {
     font-weight: 700;
     font-size: var(--font-size-3xl);
-    background: linear-gradient(135deg, currentColor, currentColor);
-    -webkit-background-clip: text;
-    background-clip: text;
+    color: currentColor;
     position: relative;
 }
 
@@ -412,7 +390,8 @@ body {
     transform: translateX(-50%);
     width: 30px;
     height: 3px;
-    background: linear-gradient(90deg, currentColor, transparent);
+    background-color: currentColor;
+    opacity: 0.5;
     border-radius: var(--border-radius);
 }
 
@@ -454,25 +433,25 @@ body {
 }
 
 .alert-danger-financial {
-    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    background-color: #fef2f2;
     color: var(--danger-color);
     border-left: 4px solid var(--danger-color);
 }
 
 .alert-success-financial {
-    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    background-color: #f0fdf4;
     color: var(--success-color);
     border-left: 4px solid var(--success-color);
 }
 
 .alert-warning-financial {
-    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    background-color: #fffbeb;
     color: var(--warning-color);
     border-left: 4px solid var(--warning-color);
 }
 
 .alert-info-financial {
-    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    background-color: #f0f9ff;
     color: var(--info-color);
     border-left: 4px solid var(--info-color);
 }

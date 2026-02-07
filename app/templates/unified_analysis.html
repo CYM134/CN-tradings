@@ -1,224 +1,242 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>统一分析 - 量化+AI智能体</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .analysis-card {
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        .rating-badge {
-            font-size: 1.2em;
-            padding: 8px 16px;
-        }
-        .confidence-bar {
-            height: 20px;
-            border-radius: 10px;
-            background: linear-gradient(90deg, #dc3545 0%, #ffc107 50%, #28a745 100%);
-        }
-        .confidence-indicator {
-            height: 100%;
-            background: white;
-            border-radius: 10px;
-            position: relative;
-        }
-        .ai-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .quant-section {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-        }
-        .unified-section {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-        }
-        .loading-spinner {
-            display: none;
-        }
-        .analysis-timestamp {
-            font-size: 0.9em;
-            color: #6c757d;
-        }
-    </style>
-</head>
-<body>
-    <div class="container-fluid py-4">
-        <div class="row">
-            <div class="col-12">
-                <h1 class="text-center mb-4">
-                    <i class="fas fa-brain"></i> 统一股票分析系统
-                    <small class="text-muted">量化分析 + AI智能体</small>
-                </h1>
-            </div>
-        </div>
+{% extends "base.html" %}
 
-        <!-- 分析输入区域 -->
-        <div class="row mb-4">
-            <div class="col-md-8 offset-md-2">
-                <div class="card analysis-card">
-                    <div class="card-body">
-                        <form id="analysisForm">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <label for="stockCode" class="form-label">股票代码</label>
-                                    <input type="text" class="form-control" id="stockCode" placeholder="例如: 000001.SZ" required>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="tradeDate" class="form-label">分析日期</label>
-                                    <input type="date" class="form-control" id="tradeDate">
-                                </div>
-                                <div class="col-md-4 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-primary w-100">
-                                        <i class="fas fa-search"></i> 开始分析
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
+{% block title %}统一分析 - 股票分析系统{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="p-4 bg-white rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-between">
+                <div>
+                    <h1 class="h3 fw-bold mb-1 text-dark">统一股票分析</h1>
+                    <p class="text-muted mb-0 small">量化分析 + AI智能体综合决策系统</p>
                 </div>
-            </div>
-        </div>
-
-        <!-- 加载状态 -->
-        <div class="row loading-spinner" id="loadingSpinner">
-            <div class="col-12 text-center">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">分析中...</span>
-                </div>
-                <p class="mt-2">正在进行综合分析，请稍候...</p>
-            </div>
-        </div>
-
-        <!-- 分析结果区域 -->
-        <div id="analysisResults" style="display: none;">
-            <!-- 统一决策结果 -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card analysis-card unified-section">
-                        <div class="card-body text-center">
-                            <h3><i class="fas fa-trophy"></i> 最终投资建议</h3>
-                            <div class="row mt-3">
-                                <div class="col-md-4">
-                                    <h4>评级</h4>
-                                    <span id="finalRating" class="badge rating-badge">-</span>
-                                </div>
-                                <div class="col-md-4">
-                                    <h4>置信度</h4>
-                                    <div class="confidence-bar mt-2">
-                                        <div id="finalConfidence" class="confidence-indicator"></div>
-                                    </div>
-                                    <span id="confidenceText" class="mt-1 d-block">-</span>
-                                </div>
-                                <div class="col-md-4">
-                                    <h4>风险等级</h4>
-                                    <span id="riskLevel" class="badge rating-badge">-</span>
-                                </div>
-                            </div>
-                            <div class="mt-3">
-                                <h5>决策理由</h5>
-                                <p id="finalReasoning" class="mb-0">-</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 详细分析结果 -->
-            <div class="row">
-                <!-- AI智能体分析 -->
-                <div class="col-md-6">
-                    <div class="card analysis-card ai-section">
-                        <div class="card-body">
-                            <h4><i class="fas fa-robot"></i> AI智能体分析</h4>
-                            <div id="aiAnalysisContent">
-                                <div class="mb-3">
-                                    <strong>整体评级:</strong> <span id="aiRating">-</span>
-                                </div>
-                                <div class="mb-3">
-                                    <strong>置信度:</strong> <span id="aiConfidence">-</span>
-                                </div>
-                                <div class="mb-3">
-                                    <strong>目标价格:</strong> <span id="targetPrice">-</span>
-                                </div>
-                                <div class="mb-3">
-                                    <strong>投资建议:</strong>
-                                    <p id="investmentAdvice" class="mb-0">-</p>
-                                </div>
-                                <div class="mb-3">
-                                    <strong>分析摘要:</strong>
-                                    <div id="analysisSummary">
-                                        <small><strong>市场分析:</strong> <span id="marketAnalysis">-</span></small><br>
-                                        <small><strong>基本面分析:</strong> <span id="fundamentalAnalysis">-</span></small><br>
-                                        <small><strong>新闻分析:</strong> <span id="newsAnalysis">-</span></small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="aiError" style="display: none;">
-                                <div class="alert alert-warning">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    AI分析暂不可用: <span id="aiErrorMsg">-</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 量化分析 -->
-                <div class="col-md-6">
-                    <div class="card analysis-card quant-section">
-                        <div class="card-body">
-                            <h4><i class="fas fa-chart-line"></i> 量化分析</h4>
-                            <div id="quantAnalysisContent">
-                                <div class="mb-3">
-                                    <strong>因子得分:</strong>
-                                    <ul id="factorScores" class="list-unstyled mt-2">
-                                        <li>动量因子: <span id="momentumScore">-</span></li>
-                                        <li>价值因子: <span id="valueScore">-</span></li>
-                                        <li>质量因子: <span id="qualityScore">-</span></li>
-                                        <li>波动率因子: <span id="volatilityScore">-</span></li>
-                                    </ul>
-                                </div>
-                                <div class="mb-3">
-                                    <strong>ML模型预测:</strong>
-                                    <ul class="list-unstyled mt-2">
-                                        <li>预测收益: <span id="predictedReturn">-</span></li>
-                                        <li>模型置信度: <span id="mlConfidence">-</span></li>
-                                        <li>使用模型: <span id="modelUsed">-</span></li>
-                                    </ul>
-                                </div>
-                                <div class="mb-3">
-                                    <strong>技术指标:</strong>
-                                    <ul class="list-unstyled mt-2">
-                                        <li>RSI: <span id="rsiValue">-</span></li>
-                                        <li>MACD信号: <span id="macdSignal">-</span></li>
-                                        <li>布林带位置: <span id="bollingerPosition">-</span></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 分析时间戳 -->
-            <div class="row mt-3">
-                <div class="col-12 text-center">
-                    <p class="analysis-timestamp">
-                        分析时间: <span id="analysisTimestamp">-</span>
-                    </p>
+                <div class="text-primary opacity-25">
+                    <i class="fas fa-brain fa-3x"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 分析输入区域 -->
+    <div class="row mb-4">
+        <div class="col-md-8 offset-md-2">
+            <div class="card card-financial border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form id="analysisForm">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="stockCode" class="form-label small text-muted">股票代码</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-0"><i class="fas fa-search text-muted"></i></span>
+                                    <input type="text" class="form-control bg-light border-0" id="stockCode" placeholder="例如: 000001.SZ" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="tradeDate" class="form-label small text-muted">分析日期</label>
+                                <input type="date" class="form-control bg-light border-0" id="tradeDate">
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100 shadow-sm">
+                                    <i class="fas fa-bolt me-2"></i>开始智能分析
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载状态 -->
+    <div class="row loading-spinner" id="loadingSpinner" style="display: none;">
+        <div class="col-12 text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">分析中...</span>
+            </div>
+            <p class="mt-3 text-muted">正在进行综合分析，请稍候...</p>
+        </div>
+    </div>
+
+    <!-- 分析结果区域 -->
+    <div id="analysisResults" style="display: none;">
+        <!-- 统一决策结果 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card card-financial border-0 shadow-sm border-start border-4 border-danger h-100">
+                    <div class="card-body text-center p-4">
+                        <h5 class="text-uppercase text-muted fw-bold ls-tight mb-3"><i class="fas fa-trophy me-2 text-warning"></i>最终投资建议</h5>
+                        <div class="row mt-4 align-items-center">
+                            <div class="col-md-4 border-end">
+                                <h6 class="text-muted small">综合评级</h6>
+                                <span id="finalRating" class="badge rounded-pill px-4 py-2 mt-2 fs-5">-</span>
+                            </div>
+                            <div class="col-md-4 border-end">
+                                <h6 class="text-muted small">置信度</h6>
+                                <div class="progress mt-2" style="height: 10px; background-color: #f1f5f9;">
+                                    <div id="finalConfidence" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <span id="confidenceText" class="mt-2 d-block small fw-bold text-success">-</span>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-muted small">风险等级</h6>
+                                <span id="riskLevel" class="badge bg-secondary rounded-pill px-3 py-2 mt-2">-</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-top">
+                            <h6 class="text-start text-muted small fw-bold mb-2">决策理由</h6>
+                            <p id="finalReasoning" class="text-start mb-0 text-dark">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 详细分析结果 -->
+        <div class="row g-4">
+            <!-- AI智能体分析 -->
+            <div class="col-md-6">
+                <div class="card card-financial border-0 shadow-sm h-100 border-start border-4 border-primary">
+                    <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                        <h5 class="card-title fw-bold text-dark"><i class="fas fa-robot me-2 text-primary"></i>AI智能体分析</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div id="aiAnalysisContent">
+                            <div class="row g-3 mb-4">
+                                <div class="col-6">
+                                    <div class="p-3 bg-light rounded-3">
+                                        <small class="text-muted d-block mb-1">整体评级</small>
+                                        <span id="aiRating" class="fw-bold text-dark">-</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 bg-light rounded-3">
+                                        <small class="text-muted d-block mb-1">置信度</small>
+                                        <span id="aiConfidence" class="fw-bold text-dark">-</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-3 bg-light rounded-3">
+                                        <small class="text-muted d-block mb-1">目标价格</small>
+                                        <span id="targetPrice" class="fw-bold text-dark">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h6 class="text-muted small text-uppercase fw-bold mb-2">投资建议</h6>
+                                <p id="investmentAdvice" class="mb-0 text-dark small">-</p>
+                            </div>
+                            
+                            <div>
+                                <h6 class="text-muted small text-uppercase fw-bold mb-2">分析摘要</h6>
+                                <div id="analysisSummary" class="d-flex flex-column gap-2">
+                                    <div class="d-flex">
+                                        <span class="badge bg-light text-dark me-2 border h-auto align-self-start">市场</span>
+                                        <small id="marketAnalysis" class="text-secondary">-</small>
+                                    </div>
+                                    <div class="d-flex">
+                                        <span class="badge bg-light text-dark me-2 border h-auto align-self-start">基本面</span>
+                                        <small id="fundamentalAnalysis" class="text-secondary">-</small>
+                                    </div>
+                                    <div class="d-flex">
+                                        <span class="badge bg-light text-dark me-2 border h-auto align-self-start">舆情</span>
+                                        <small id="newsAnalysis" class="text-secondary">-</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="aiError" style="display: none;">
+                            <div class="alert alert-warning border-0 shadow-sm">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                AI分析暂不可用: <span id="aiErrorMsg">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 量化分析 -->
+            <div class="col-md-6">
+                <div class="card card-financial border-0 shadow-sm h-100 border-start border-4 border-success">
+                    <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                        <h5 class="card-title fw-bold text-dark"><i class="fas fa-chart-line me-2 text-success"></i>量化分析</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div id="quantAnalysisContent">
+                            <div class="mb-4">
+                                <h6 class="text-muted small text-uppercase fw-bold mb-3">因子得分</h6>
+                                <ul id="factorScores" class="list-group list-group-flush small">
+                                    <li class="list-group-item px-0 border-0 d-flex justify-content-between align-items-center bg-transparent">
+                                        <span>动量因子</span>
+                                        <span id="momentumScore" class="badge bg-light text-dark border">-</span>
+                                    </li>
+                                    <li class="list-group-item px-0 border-0 d-flex justify-content-between align-items-center bg-transparent">
+                                        <span>价值因子</span>
+                                        <span id="valueScore" class="badge bg-light text-dark border">-</span>
+                                    </li>
+                                    <li class="list-group-item px-0 border-0 d-flex justify-content-between align-items-center bg-transparent">
+                                        <span>质量因子</span>
+                                        <span id="qualityScore" class="badge bg-light text-dark border">-</span>
+                                    </li>
+                                    <li class="list-group-item px-0 border-0 d-flex justify-content-between align-items-center bg-transparent">
+                                        <span>波动率因子</span>
+                                        <span id="volatilityScore" class="badge bg-light text-dark border">-</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h6 class="text-muted small text-uppercase fw-bold mb-3">ML模型预测</h6>
+                                <div class="row g-2">
+                                    <div class="col-4">
+                                        <div class="p-2 border rounded text-center">
+                                            <small class="text-muted d-block" style="font-size: 0.7rem;">预测收益</small>
+                                            <span id="predictedReturn" class="fw-bold text-success">-</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-2 border rounded text-center">
+                                            <small class="text-muted d-block" style="font-size: 0.7rem;">模型置信度</small>
+                                            <span id="mlConfidence" class="fw-bold text-primary">-</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-2 border rounded text-center">
+                                            <small class="text-muted d-block" style="font-size: 0.7rem;">使用模型</small>
+                                            <span id="modelUsed" class="fw-bold text-dark small">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h6 class="text-muted small text-uppercase fw-bold mb-3">技术指标</h6>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <span class="badge bg-light text-secondary border fw-normal">RSI: <span id="rsiValue" class="fw-bold text-dark">-</span></span>
+                                    <span class="badge bg-light text-secondary border fw-normal">MACD: <span id="macdSignal" class="fw-bold text-dark">-</span></span>
+                                    <span class="badge bg-light text-secondary border fw-normal">布林带: <span id="bollingerPosition" class="fw-bold text-dark">-</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分析时间戳 -->
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <p class="text-muted small mb-0">
+                    分析时间: <span id="analysisTimestamp">-</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
     <script>
         // 设置默认日期为今天
         document.getElementById('tradeDate').value = new Date().toISOString().split('T')[0];
@@ -277,11 +295,17 @@
             // 最终决策
             const finalDecision = data.final_decision || {};
             document.getElementById('finalRating').textContent = finalDecision.rating || '-';
-            document.getElementById('finalRating').className = `badge rating-badge ${getRatingClass(finalDecision.rating)}`;
+            // Use standard Bootstrap classes for ratings
+            const ratingClass = getRatingClass(finalDecision.rating);
+            document.getElementById('finalRating').className = `badge rounded-pill px-4 py-2 mt-2 fs-5 ${ratingClass}`;
             
             const confidence = finalDecision.confidence || 0;
-            document.getElementById('finalConfidence').style.left = `${confidence * 100}%`;
-            document.getElementById('confidenceText').textContent = `${(confidence * 100).toFixed(1)}%`;
+            // Update progress bar
+            const confidencePercent = (confidence * 100).toFixed(1);
+            const progressBar = document.getElementById('finalConfidence');
+            progressBar.style.width = `${confidencePercent}%`;
+            progressBar.setAttribute('aria-valuenow', confidencePercent);
+            document.getElementById('confidenceText').textContent = `${confidencePercent}%`;
             
             document.getElementById('riskLevel').textContent = getRiskLevel(finalDecision.risk_level);
             document.getElementById('finalReasoning').textContent = finalDecision.reasoning || '-';
@@ -334,7 +358,7 @@
             switch(rating) {
                 case 'STRONG_BUY': return 'bg-success';
                 case 'BUY': return 'bg-primary';
-                case 'HOLD': return 'bg-warning';
+                case 'HOLD': return 'bg-warning text-dark';
                 case 'SELL': return 'bg-danger';
                 case 'STRONG_SELL': return 'bg-dark';
                 default: return 'bg-secondary';
@@ -347,5 +371,4 @@
             return '高风险';
         }
     </script>
-</body>
-</html>
+{% endblock %}

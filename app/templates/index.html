@@ -128,82 +128,86 @@
 {% block content %}
 <div class="container">
     <!-- 欢迎横幅 -->
-    <div class="row mb-4">
+    <div class="row mb-5">
         <div class="col-12">
-            <div class="card stock-info-banner">
-                <div class="card-body text-center py-5">
-                    <h1 class="display-4 mb-3">📈 股票分析系统</h1>
-                    <p class="lead">基于Python Flask开发的专业股票分析平台</p>
-                    <p class="mb-4">提供股票基本面分析、技术面分析、资金流向分析、筹码分布分析等功能</p>
-                    <div class="d-grid gap-2 d-md-block">
-                        <a href="{{ url_for('main.stocks') }}" class="btn btn-light btn-lg me-md-3 btn-financial">开始分析</a>
-                        <a href="{{ url_for('main.screen') }}" class="btn btn-outline-light btn-lg btn-financial">选股筛选</a>
+            <div class="card stock-info-banner border-0 rounded-4 shadow-lg overflow-hidden position-relative animate-fade-in-up">
+                <div class="card-body text-center py-5 position-relative z-1">
+                    <h1 class="display-4 fw-bold mb-3 ls-tight">股票分析系统</h1>
+                    <p class="lead opacity-75 mb-4">专业级 Python Flask 金融数据量化平台</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{{ url_for('main.stocks') }}" class="btn btn-light px-4 py-2 fw-semibold rounded-pill shadow-sm">
+                            <i class="fas fa-chart-line me-2"></i>开始分析
+                        </a>
+                        <a href="{{ url_for('main.screen') }}" class="btn btn-outline-light px-4 py-2 fw-semibold rounded-pill">
+                            <i class="fas fa-filter me-2"></i>选股筛选
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 功能模块 -->
-    <div class="row mb-4">
+    <!-- 核心功能 -->
+    <div class="row mb-5">
         <div class="col-12">
-            <h2 class="mb-4">🚀 核心功能</h2>
+            <div class="d-flex align-items-center mb-4">
+                <div class="bg-primary rounded-pill p-1 me-2" style="width: 4px; height: 24px;"></div>
+                <h3 class="fw-bold m-0">核心功能</h3>
+            </div>
         </div>
-    </div>
 
-    <div class="row g-3 g-md-4 mb-5">
         <!-- 股票列表 -->
-        <div class="col-6 col-md-6 col-lg-3">
-            <div class="card metric-card-enhanced h-100 hover-lift">
-                <div class="card-body text-center">
-                    <div class="metric-icon">
-                        <i class="fas fa-list-ul text-primary"></i>
+        <div class="col-6 col-md-6 col-lg-3 mb-4">
+            <div class="card metric-card-enhanced h-100 border-0 shadow-sm hover-lift-lg transition-all">
+                <div class="card-body text-center p-4">
+                    <div class="metric-icon bg-blue-50 text-primary rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                        <i class="fas fa-list-ul fa-lg"></i>
                     </div>
-                    <h5 class="card-title">股票列表</h5>
-                    <p class="card-text">浏览所有股票信息，支持按行业、地域筛选</p>
-                    <a href="{{ url_for('main.stocks') }}" class="btn btn-primary-financial">查看股票</a>
+                    <h5 class="fw-bold mb-2">股票列表</h5>
+                    <p class="text-muted small mb-3">多维度筛选与浏览全市场股票信息</p>
+                    <a href="{{ url_for('main.stocks') }}" class="btn btn-sm btn-link text-decoration-none stretched-link">查看详情 <i class="fas fa-arrow-right small ms-1"></i></a>
                 </div>
             </div>
         </div>
 
         <!-- 技术分析 -->
-        <div class="col-6 col-md-6 col-lg-3">
-            <div class="card metric-card-enhanced h-100 hover-lift">
-                <div class="card-body text-center">
-                    <div class="metric-icon">
-                        <i class="fas fa-chart-line text-success"></i>
+        <div class="col-6 col-md-6 col-lg-3 mb-4">
+            <div class="card metric-card-enhanced h-100 border-0 shadow-sm hover-lift-lg transition-all">
+                <div class="card-body text-center p-4">
+                    <div class="metric-icon bg-green-50 text-success rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                        <i class="fas fa-chart-line fa-lg"></i>
                     </div>
-                    <h5 class="card-title">技术分析</h5>
-                    <p class="card-text">K线图、MACD、KDJ、RSI等技术指标分析</p>
-                    <a href="{{ url_for('main.analysis') }}" class="btn btn-success-financial">技术分析</a>
+                    <h5 class="fw-bold mb-2">技术分析</h5>
+                    <p class="text-muted small mb-3">集成MACD、KDJ等多种专业技术指标</p>
+                    <a href="{{ url_for('main.analysis') }}" class="btn btn-sm btn-link text-success text-decoration-none stretched-link">开始分析 <i class="fas fa-arrow-right small ms-1"></i></a>
                 </div>
             </div>
         </div>
 
         <!-- 选股筛选 -->
-        <div class="col-6 col-md-6 col-lg-3">
-            <div class="card metric-card-enhanced h-100 hover-lift">
-                <div class="card-body text-center">
-                    <div class="metric-icon">
-                        <i class="fas fa-filter text-warning"></i>
+        <div class="col-6 col-md-6 col-lg-3 mb-4">
+            <div class="card metric-card-enhanced h-100 border-0 shadow-sm hover-lift-lg transition-all">
+                <div class="card-body text-center p-4">
+                    <div class="metric-icon bg-yellow-50 text-warning rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                        <i class="fas fa-filter fa-lg"></i>
                     </div>
-                    <h5 class="card-title">选股筛选</h5>
-                    <p class="card-text">多维度条件筛选，发现投资机会</p>
-                    <a href="{{ url_for('main.screen') }}" class="btn btn-warning-financial">开始筛选</a>
+                    <h5 class="fw-bold mb-2">智能筛选</h5>
+                    <p class="text-muted small mb-3">自定义条件筛选，快速定位潜力标的</p>
+                    <a href="{{ url_for('main.screen') }}" class="btn btn-sm btn-link text-warning text-decoration-none stretched-link">去筛选 <i class="fas fa-arrow-right small ms-1"></i></a>
                 </div>
             </div>
         </div>
 
         <!-- 策略回测 -->
-        <div class="col-6 col-md-6 col-lg-3">
-            <div class="card metric-card-enhanced h-100 hover-lift">
-                <div class="card-body text-center">
-                    <div class="metric-icon">
-                        <i class="fas fa-history text-info"></i>
+        <div class="col-6 col-md-6 col-lg-3 mb-4">
+            <div class="card metric-card-enhanced h-100 border-0 shadow-sm hover-lift-lg transition-all">
+                <div class="card-body text-center p-4">
+                    <div class="metric-icon bg-cyan-50 text-info rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                        <i class="fas fa-history fa-lg"></i>
                     </div>
-                    <h5 class="card-title">策略回测</h5>
-                    <p class="card-text">验证投资策略的历史表现</p>
-                    <a href="{{ url_for('main.backtest') }}" class="btn btn-primary-financial">策略回测</a>
+                    <h5 class="fw-bold mb-2">策略回测</h5>
+                    <p class="text-muted small mb-3">历史数据回测验证投资策略有效性</p>
+                    <a href="{{ url_for('main.backtest') }}" class="btn btn-sm btn-link text-info text-decoration-none stretched-link">开始回测 <i class="fas fa-arrow-right small ms-1"></i></a>
                 </div>
             </div>
         </div>

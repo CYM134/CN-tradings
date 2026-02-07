@@ -5,7 +5,7 @@
     .navbar-financial .navbar-toggler {
         border: none;
         padding: 0.25rem 0.5rem;
-        background: rgba(255, 255, 255, 0.1);
+        background-color: transparent;
         border-radius: var(--border-radius);
     }
     
@@ -119,7 +119,7 @@
         position: sticky;
         top: 0;
         z-index: 10;
-        background: linear-gradient(135deg, var(--gray-100), var(--gray-50));
+        background-color: var(--gray-100);
     }
 }
 
@@ -248,7 +248,7 @@
     .modal-header {
         padding: 1rem 1.5rem;
         border-bottom: 1px solid var(--gray-200);
-        background: linear-gradient(135deg, var(--gray-50), white);
+        background-color: white;
     }
     
     .modal-title {
@@ -444,7 +444,7 @@
     }
     
     .progress-bar {
-        background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+        background-color: var(--primary-color);
         border-radius: var(--border-radius-xl);
         transition: width 0.6s ease;
         position: relative;
@@ -452,24 +452,7 @@
     }
     
     .progress-bar::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        background: linear-gradient(
-            45deg,
-            rgba(255, 255, 255, 0.2) 25%,
-            transparent 25%,
-            transparent 50%,
-            rgba(255, 255, 255, 0.2) 50%,
-            rgba(255, 255, 255, 0.2) 75%,
-            transparent 75%,
-            transparent
-        );
-        background-size: 1rem 1rem;
-        animation: progress-bar-stripes 1s linear infinite;
+        display: none;
     }
     
     @keyframes progress-bar-stripes {

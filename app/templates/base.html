@@ -36,8 +36,10 @@
             padding: 50px;
         }
         .stock-info {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: #fff;
+            color: #333;
+            border-left: 4px solid #0f172a;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         .metric-card {
             transition: transform 0.2s;
@@ -46,16 +48,16 @@
             transform: translateY(-2px);
         }
         .text-purple {
-            color: #6f42c1 !important;
+            color: #475569 !important;
         }
         .btn-purple {
-            background-color: #6f42c1;
-            border-color: #6f42c1;
+            background-color: #475569;
+            border-color: #475569;
             color: white;
         }
         .btn-purple:hover {
-            background-color: #5a359a;
-            border-color: #5a359a;
+            background-color: #334155;
+            border-color: #334155;
             color: white;
         }
 
@@ -363,6 +365,78 @@
             .table-responsive::-webkit-scrollbar-thumb:hover {
                 background: #a8a8a8;
             }
+        }
+    </style>
+
+    <style>
+        /* Modern Financial Theme Global Overrides */
+        :root { --bs-body-bg: #f8fafc; }
+        body { background-color: var(--bs-body-bg); color: #334155; }
+        
+        /* Modern Card Style */
+        .card {
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-radius: 12px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        /* Card Header */
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 1.25rem 1.5rem;
+            border-top-left-radius: 12px !important;
+            border-top-right-radius: 12px !important;
+            font-weight: 600;
+        }
+
+        /* Modern Inputs */
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            padding: 0.6rem 1rem;
+            color: #1e293b;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        /* Navbar Refinement */
+        .navbar-financial {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+        
+        .navbar-financial .nav-link {
+            font-weight: 500;
+            color: rgba(255,255,255,0.8);
+            transition: color 0.2s;
+        }
+        
+        .navbar-financial .nav-link:hover, .navbar-financial .nav-link.active {
+            color: #fff;
+        }
+
+        /* Buttons */
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 0.5rem 1.25rem;
+        }
+        
+        .btn-primary {
+            background-color: #2563eb;
+            border-color: #2563eb;
+        }
+        
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+            border-color: #1d4ed8;
         }
     </style>
     

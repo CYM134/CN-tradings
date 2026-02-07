@@ -7,102 +7,93 @@
     <!-- 页面标题 -->
     <div class="row mb-4">
         <div class="col-12">
-            <h1 class="h2">🎯 选股筛选</h1>
-            <p class="text-muted">基于股票业务大宽表的多维度条件筛选，发现投资机会</p>
+            <div class="p-4 mb-4 bg-white rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-between">
+                <div>
+                    <h1 class="h3 fw-bold mb-1 text-dark">选股筛选</h1>
+                    <p class="text-muted mb-0 small">基于股票业务大宽表的多维度条件筛选，发现投资机会</p>
+                </div>
+                <div class="text-primary opacity-25">
+                    <i class="fas fa-filter fa-3x"></i>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- 筛选条件 -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">筛选条件</h5>
+            <div class="card card-financial border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom border-light py-3">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-sliders-h me-2 text-primary"></i>筛选条件</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <form id="screen-form">
                         <!-- 基本条件 -->
                         <div class="row g-3 mb-4">
                             <div class="col-12">
-                                <h6 class="text-primary">📊 基本条件</h6>
+                                <h6 class="text-muted small text-uppercase fw-bold mb-3 ls-tight">基本条件</h6>
                             </div>
                             <div class="col-md-3">
-                                <label for="industry-filter" class="form-label">行业</label>
-                                <select class="form-select" id="industry-filter">
+                                <label for="industry-filter" class="form-label small text-muted">行业</label>
+                                <select class="form-select bg-light border-0" id="industry-filter">
                                     <option value="">全部行业</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label for="area-filter" class="form-label">地域</label>
-                                <select class="form-select" id="area-filter">
+                                <label for="area-filter" class="form-label small text-muted">地域</label>
+                                <select class="form-select bg-light border-0" id="area-filter">
                                     <option value="">全部地域</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label for="market-filter" class="form-label">市场</label>
-                                <select class="form-select" id="market-filter">
+                                <label for="market-filter" class="form-label small text-muted">市场</label>
+                                <select class="form-select bg-light border-0" id="market-filter">
                                     <option value="">全部市场</option>
                                     <option value="SZ">深圳</option>
                                     <option value="SH">上海</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label for="date-filter" class="form-label">数据日期</label>
-                                <input type="date" class="form-control" id="date-filter" title="选择特定日期的数据，留空则使用最新数据">
+                                <label for="date-filter" class="form-label small text-muted">数据日期</label>
+                                <input type="date" class="form-control bg-light border-0" id="date-filter" title="选择特定日期的数据，留空则使用最新数据">
                             </div>
                         </div>
 
                         <!-- 估值指标 -->
                         <div class="row g-3 mb-4">
                             <div class="col-12">
-                                <h6 class="text-primary">💰 估值指标</h6>
+                                <h6 class="text-muted small text-uppercase fw-bold mb-3 ls-tight">估值指标</h6>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">市盈率(PE)</label>
-                                <div class="row g-2">
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="pe-min" placeholder="最小值" step="0.1">
-                                    </div>
-                                    <div class="col-auto">-</div>
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="pe-max" placeholder="最大值" step="0.1">
-                                    </div>
+                                <label class="form-label small text-muted">市盈率(PE)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control bg-light border-0" id="pe-min" placeholder="Min" step="0.1">
+                                    <span class="input-group-text bg-light border-0 text-muted">-</span>
+                                    <input type="number" class="form-control bg-light border-0" id="pe-max" placeholder="Max" step="0.1">
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">市净率(PB)</label>
-                                <div class="row g-2">
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="pb-min" placeholder="最小值" step="0.1">
-                                    </div>
-                                    <div class="col-auto">-</div>
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="pb-max" placeholder="最大值" step="0.1">
-                                    </div>
+                                <label class="form-label small text-muted">市净率(PB)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control bg-light border-0" id="pb-min" placeholder="Min" step="0.1">
+                                    <span class="input-group-text bg-light border-0 text-muted">-</span>
+                                    <input type="number" class="form-control bg-light border-0" id="pb-max" placeholder="Max" step="0.1">
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">市销率(PS)</label>
-                                <div class="row g-2">
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="ps-min" placeholder="最小值" step="0.1">
-                                    </div>
-                                    <div class="col-auto">-</div>
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="ps-max" placeholder="最大值" step="0.1">
-                                    </div>
+                                <label class="form-label small text-muted">市销率(PS)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control bg-light border-0" id="ps-min" placeholder="Min" step="0.1">
+                                    <span class="input-group-text bg-light border-0 text-muted">-</span>
+                                    <input type="number" class="form-control bg-light border-0" id="ps-max" placeholder="Max" step="0.1">
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">股息率(%)</label>
-                                <div class="row g-2">
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="dv-min" placeholder="最小值" step="0.1">
-                                    </div>
-                                    <div class="col-auto">-</div>
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="dv-max" placeholder="最大值" step="0.1">
-                                    </div>
+                                <label class="form-label small text-muted">股息率(%)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control bg-light border-0" id="dv-min" placeholder="Min" step="0.1">
+                                    <span class="input-group-text bg-light border-0 text-muted">-</span>
+                                    <input type="number" class="form-control bg-light border-0" id="dv-max" placeholder="Max" step="0.1">
                                 </div>
                             </div>
                         </div>
@@ -110,152 +101,108 @@
                         <!-- 市值和交易指标 -->
                         <div class="row g-3 mb-4">
                             <div class="col-12">
-                                <h6 class="text-primary">📈 市值与交易</h6>
+                                <h6 class="text-muted small text-uppercase fw-bold mb-3 ls-tight">市值与交易</h6>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">总市值(万元)</label>
-                                <div class="row g-2">
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="mv-min" placeholder="最小值">
-                                    </div>
-                                    <div class="col-auto">-</div>
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="mv-max" placeholder="最大值">
-                                    </div>
+                                <label class="form-label small text-muted">总市值(万元)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control bg-light border-0" id="mv-min" placeholder="Min">
+                                    <span class="input-group-text bg-light border-0 text-muted">-</span>
+                                    <input type="number" class="form-control bg-light border-0" id="mv-max" placeholder="Max">
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">流通市值(万元)</label>
-                                <div class="row g-2">
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="circ-mv-min" placeholder="最小值">
-                                    </div>
-                                    <div class="col-auto">-</div>
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="circ-mv-max" placeholder="最大值">
-                                    </div>
+                                <label class="form-label small text-muted">流通市值(万元)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control bg-light border-0" id="circ-mv-min" placeholder="Min">
+                                    <span class="input-group-text bg-light border-0 text-muted">-</span>
+                                    <input type="number" class="form-control bg-light border-0" id="circ-mv-max" placeholder="Max">
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">换手率(%)</label>
-                                <div class="row g-2">
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="turnover-min" placeholder="最小值" step="0.1">
-                                    </div>
-                                    <div class="col-auto">-</div>
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="turnover-max" placeholder="最大值" step="0.1">
-                                    </div>
+                                <label class="form-label small text-muted">换手率(%)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control bg-light border-0" id="turnover-min" placeholder="Min" step="0.1">
+                                    <span class="input-group-text bg-light border-0 text-muted">-</span>
+                                    <input type="number" class="form-control bg-light border-0" id="turnover-max" placeholder="Max" step="0.1">
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">量比</label>
-                                <div class="row g-2">
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="volume-ratio-min" placeholder="最小值" step="0.1">
-                                    </div>
-                                    <div class="col-auto">-</div>
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="volume-ratio-max" placeholder="最大值" step="0.1">
-                                    </div>
+                                <label class="form-label small text-muted">量比</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control bg-light border-0" id="volume-ratio-min" placeholder="Min" step="0.1">
+                                    <span class="input-group-text bg-light border-0 text-muted">-</span>
+                                    <input type="number" class="form-control bg-light border-0" id="volume-ratio-max" placeholder="Max" step="0.1">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- 技术指标 -->
+                         <!-- 技术指标 -->
                         <div class="row g-3 mb-4">
                             <div class="col-12">
-                                <h6 class="text-primary">📊 技术指标</h6>
+                                <h6 class="text-muted small text-uppercase fw-bold mb-3 ls-tight">技术指标</h6>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">RSI(6日)</label>
-                                <div class="row g-2">
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="rsi6-min" placeholder="最小值" step="0.1">
-                                    </div>
-                                    <div class="col-auto">-</div>
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="rsi6-max" placeholder="最大值" step="0.1">
-                                    </div>
+                                <label class="form-label small text-muted">RSI(6日)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control bg-light border-0" id="rsi6-min" placeholder="Min" step="0.1">
+                                    <span class="input-group-text bg-light border-0 text-muted">-</span>
+                                    <input type="number" class="form-control bg-light border-0" id="rsi6-max" placeholder="Max" step="0.1">
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">KDJ-K值</label>
-                                <div class="row g-2">
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="kdj-k-min" placeholder="最小值" step="0.1">
-                                    </div>
-                                    <div class="col-auto">-</div>
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="kdj-k-max" placeholder="最大值" step="0.1">
-                                    </div>
+                                <label class="form-label small text-muted">KDJ-K值</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control bg-light border-0" id="kdj-k-min" placeholder="Min" step="0.1">
+                                    <span class="input-group-text bg-light border-0 text-muted">-</span>
+                                    <input type="number" class="form-control bg-light border-0" id="kdj-k-max" placeholder="Max" step="0.1">
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">MACD</label>
-                                <div class="row g-2">
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="macd-min" placeholder="最小值" step="0.01">
-                                    </div>
-                                    <div class="col-auto">-</div>
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="macd-max" placeholder="最大值" step="0.01">
-                                    </div>
+                                <label class="form-label small text-muted">MACD</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control bg-light border-0" id="macd-min" placeholder="Min" step="0.01">
+                                    <span class="input-group-text bg-light border-0 text-muted">-</span>
+                                    <input type="number" class="form-control bg-light border-0" id="macd-max" placeholder="Max" step="0.01">
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">CCI指标</label>
-                                <div class="row g-2">
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="cci-min" placeholder="最小值" step="0.1">
-                                    </div>
-                                    <div class="col-auto">-</div>
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="cci-max" placeholder="最大值" step="0.1">
-                                    </div>
+                                <label class="form-label small text-muted">CCI指标</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control bg-light border-0" id="cci-min" placeholder="Min" step="0.1">
+                                    <span class="input-group-text bg-light border-0 text-muted">-</span>
+                                    <input type="number" class="form-control bg-light border-0" id="cci-max" placeholder="Max" step="0.1">
                                 </div>
                             </div>
                         </div>
 
                         <!-- 资金流向 -->
-                        <div class="row g-3 mb-4">
+                         <div class="row g-3 mb-4">
                             <div class="col-12">
-                                <h6 class="text-primary">💸 资金流向</h6>
+                                <h6 class="text-muted small text-uppercase fw-bold mb-3 ls-tight">资金流向</h6>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">净流入额(万元)</label>
-                                <div class="row g-2">
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="net-amount-min" placeholder="最小值">
-                                    </div>
-                                    <div class="col-auto">-</div>
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="net-amount-max" placeholder="最大值">
-                                    </div>
+                                <label class="form-label small text-muted">净流入额(万元)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control bg-light border-0" id="net-amount-min" placeholder="Min">
+                                    <span class="input-group-text bg-light border-0 text-muted">-</span>
+                                    <input type="number" class="form-control bg-light border-0" id="net-amount-max" placeholder="Max">
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">大单买入占比(%)</label>
-                                <div class="row g-2">
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="lg-buy-rate-min" placeholder="最小值" step="0.1">
-                                    </div>
-                                    <div class="col-auto">-</div>
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="lg-buy-rate-max" placeholder="最大值" step="0.1">
-                                    </div>
+                                <label class="form-label small text-muted">大单买入占比(%)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control bg-light border-0" id="lg-buy-rate-min" placeholder="Min" step="0.1">
+                                    <span class="input-group-text bg-light border-0 text-muted">-</span>
+                                    <input type="number" class="form-control bg-light border-0" id="lg-buy-rate-max" placeholder="Max" step="0.1">
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">5日净流入额(万元)</label>
-                                <div class="row g-2">
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="net-d5-amount-min" placeholder="最小值">
-                                    </div>
-                                    <div class="col-auto">-</div>
-                                    <div class="col">
-                                        <input type="number" class="form-control" id="net-d5-amount-max" placeholder="最大值">
-                                    </div>
+                                <label class="form-label small text-muted">5日净流入额(万元)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control bg-light border-0" id="net-d5-amount-min" placeholder="Min">
+                                    <span class="input-group-text bg-light border-0 text-muted">-</span>
+                                    <input type="number" class="form-control bg-light border-0" id="net-d5-amount-max" placeholder="Max">
                                 </div>
                             </div>
                         </div>
@@ -263,14 +210,14 @@
                         <!-- 动态查询条件 -->
                         <div class="row g-3 mb-4">
                             <div class="col-12">
-                                <h6 class="text-primary">🔧 动态查询条件</h6>
+                                <h6 class="text-muted small text-uppercase fw-bold mb-3 ls-tight">动态查询条件</h6>
                                 <p class="text-muted small">支持字段间比较，如：MA5 > MA10，PE < PB等</p>
                             </div>
                             <div id="dynamic-conditions">
                                 <!-- 动态条件将在这里添加 -->
                             </div>
                             <div class="col-12">
-                                <button type="button" class="btn btn-outline-primary btn-sm" id="add-condition">
+                                <button type="button" class="btn btn-light border-0 text-primary btn-sm" id="add-condition">
                                     <i class="fas fa-plus"></i> 添加条件
                                 </button>
                             </div>

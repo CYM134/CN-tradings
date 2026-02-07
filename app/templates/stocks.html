@@ -15,28 +15,31 @@
     <!-- 筛选条件 -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card">
-                <div class="card-body">
+            <div class="card card-financial border-0 shadow-sm">
+                <div class="card-body p-4">
                     <form id="filter-form" class="row g-3">
                         <div class="col-md-4">
-                            <label for="industry-select" class="form-label">行业</label>
-                            <select class="form-select" id="industry-select">
+                            <label for="industry-select" class="form-label text-muted small text-uppercase fw-bold">行业</label>
+                            <select class="form-select border-0 bg-light" id="industry-select">
                                 <option value="">全部行业</option>
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="area-select" class="form-label">地域</label>
-                            <select class="form-select" id="area-select">
+                            <label for="area-select" class="form-label text-muted small text-uppercase fw-bold">地域</label>
+                            <select class="form-select border-0 bg-light" id="area-select">
                                 <option value="">全部地域</option>
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="search-input" class="form-label">搜索</label>
-                            <input type="text" class="form-control" id="search-input" placeholder="股票代码或名称">
+                            <label for="search-input" class="form-label text-muted small text-uppercase fw-bold">搜索</label>
+                            <div class="input-group">
+                                <span class="input-group-text border-0 bg-light"><i class="fas fa-search text-muted"></i></span>
+                                <input type="text" class="form-control border-0 bg-light" id="search-input" placeholder="股票代码或名称">
+                            </div>
                         </div>
-                        <div class="col-12">
-                            <button type="submit" class="btn btn-primary">筛选</button>
-                            <button type="button" class="btn btn-secondary" id="reset-btn">重置</button>
+                        <div class="col-12 d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-light px-4" id="reset-btn">重置</button>
+                            <button type="submit" class="btn btn-primary px-4">筛选</button>
                         </div>
                     </form>
                 </div>
@@ -47,22 +50,24 @@
     <!-- 股票列表 -->
     <div class="row">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">股票列表</h5>
-                    <span class="badge bg-primary" id="total-count">0</span>
+            <div class="card card-financial border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark">股票列表</h5>
+                    <span class="badge bg-light text-dark border" id="total-count">0</span>
                 </div>
-                <div class="card-body">
-                    <div id="stocks-container">
+                <div class="card-body p-0">
+                    <div id="stocks-container" class="table-responsive">
                         <!-- 股票列表将在这里动态加载 -->
                     </div>
                     
                     <!-- 分页 -->
-                    <nav aria-label="股票列表分页" class="mt-4">
-                        <ul class="pagination justify-content-center" id="pagination">
-                            <!-- 分页按钮将在这里动态生成 -->
-                        </ul>
-                    </nav>
+                    <div class="p-4 border-top">
+                        <nav aria-label="股票列表分页">
+                            <ul class="pagination justify-content-center mb-0" id="pagination">
+                                <!-- 分页按钮将在这里动态生成 -->
+                            </ul>
+                        </nav>
+                    </div>
                 </div>
             </div>
         </div>
