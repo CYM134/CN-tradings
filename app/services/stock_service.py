@@ -505,6 +505,11 @@ class StockService:
                     boll_data = StockService._calculate_bollinger_bands(current_data['close'])
                     if boll_data:
                         factor_data.update(boll_data)
+                    
+                    # 计算CCI
+                    cci_data = StockService._calculate_cci(current_data)
+                    if cci_data:
+                        factor_data.update(cci_data)
                 
                 result.append(factor_data)
             
@@ -615,4 +620,35 @@ class StockService:
             return {}
         except Exception as e:
             logger.error(f"计算布林带失败: {e}")
+            return {}
+    
+    @staticmethod
+    def _calculate_cci(data, period=14):
+        """计算CCI指标（顺势指标）"""
+        try:
+            import pandas as pd
+            import numpy as np
+            
+            df = pd.DataFrame(data)
+            
+            if len(df) >= period:
+                # 计算典型价格 TP = (最高价 + 最低价 + 收盘价) / 3
+                tp = (df['high'] + df['low'] + df['close']) / 3
+                
+                # 计算TP的移动平均 MA
+                ma = tp.rolling(window=period).mean()
+                
+                # 计算平均绝对偏差 MD
+                md = tp.rolling(window=period).apply(lambda x: np.abs(x - x.mean()).mean())
+                
+                # 计算CCI = (TP - MA) / (0.015 * MD)
+                cci = (tp - ma) / (0.015 * md)
+                
+                return {
+                    'cci': round(float(cci.iloc[-1]), 2) if not pd.isna(cci.iloc[-1]) else 0
+                }
+            
+            return {}
+        except Exception as e:
+            logger.error(f"计算CCI失败: {e}")
             return {} 

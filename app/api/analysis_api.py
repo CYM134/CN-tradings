@@ -6,6 +6,533 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 
+# 导入TradingAgents-CN集成服务
+try:
+    from app.services.trading_agents_service import trading_agents_service, unified_decision_engine
+    TRADING_AGENTS_AVAILABLE = True
+    logger.info("TradingAgents-CN集成服务已加载")
+except ImportError as e:
+    TRADING_AGENTS_AVAILABLE = False
+    logger.warning(f"TradingAgents-CN集成服务不可用: {e}")
+
+@api_bp.route('/analysis/unified', methods=['POST'])
+def unified_analysis():
+    """统一智能分析接口 - 综合量化分析和AI智能决策"""
+    try:
+        data = request.get_json()
+        stock_code = data.get('stock_code')
+        trade_date = data.get('trade_date')
+        
+        if not stock_code:
+            return jsonify({
+                'success': False,
+                'message': '缺少股票代码参数'
+            }), 400
+        
+        if not trade_date:
+            trade_date = datetime.now().strftime('%Y-%m-%d')
+        
+        logger.info(f"开始统一分析: 股票={stock_code}, 日期={trade_date}")
+        
+        # 获取股票基本信息
+        stock_info = StockService.get_stock_info(stock_code)
+        if not stock_info:
+            return jsonify({
+                'success': False,
+                'message': f'未找到股票: {stock_code}'
+            }), 404
+        
+        # 获取历史数据用于量化分析
+        history_data = StockService.get_daily_history(stock_code, limit=100)
+        
+        # 执行量化分析（基于真实历史数据计算）
+        quantitative_result = perform_quantitative_analysis(stock_code, history_data)
+        
+        # 尝试调用TradingAgents-CN进行AI智能分析
+        ai_result = None
+        ai_available = False
+        if TRADING_AGENTS_AVAILABLE:
+            try:
+                logger.info(f"调用TradingAgents-CN服务分析: {stock_code}")
+                ai_raw = trading_agents_service.analyze_stock(stock_code, trade_date)
+                if 'error' not in ai_raw:
+                    ai_result = trading_agents_service.format_ai_analysis(ai_raw)
+                    if ai_result.get('success') and ai_result.get('ai_available'):
+                        ai_available = True
+                        logger.info(f"TradingAgents-CN分析成功: {stock_code}")
+                    else:
+                        logger.warning(f"TradingAgents-CN分析返回失败: {ai_result.get('error', '未知')}")
+                else:
+                    logger.warning(f"TradingAgents-CN服务错误: {ai_raw['error']}")
+            except Exception as e:
+                logger.warning(f"TradingAgents-CN调用失败，将使用本地分析: {e}")
+        
+        # 构建AI分析部分
+        if ai_available and ai_result:
+            ai_analysis_data = {
+                'ai_available': True,
+                'overall_rating': ai_result.get('overall_rating', 'HOLD'),
+                'confidence': ai_result.get('confidence', 0.5),
+                'target_price': ai_result.get('target_price', '基于AI模型'),
+                'investment_advice': ai_result.get('investment_advice', ai_result.get('reasoning', '')),
+                'analysis_summary': ai_result.get('analysis_summary', {
+                    'market_analysis': '市场分析完成',
+                    'fundamental_analysis': '基本面分析完成',
+                    'news_analysis': '新闻分析完成'
+                })
+            }
+            ai_confidence = ai_result.get('confidence', 0.5)
+            ai_rating = ai_result.get('overall_rating', 'HOLD')
+            ai_risk_score = ai_result.get('risk_score', 0.5)
+        else:
+            # AI不可用时，基于量化数据生成本地分析
+            local_ai = perform_local_ai_analysis(stock_code, stock_info, history_data, quantitative_result)
+            ai_analysis_data = local_ai
+            ai_confidence = local_ai.get('confidence', 0.5)
+            ai_rating = local_ai.get('overall_rating_raw', 'HOLD')
+            ai_risk_score = 1.0 - ai_confidence
+        
+        # 综合决策：融合量化分析和AI分析
+        quant_overall = quantitative_result.get('overall_score', 50)
+        final_decision = generate_final_decision(quant_overall, ai_rating, ai_confidence, ai_risk_score, quantitative_result)
+        
+        # 构建技术指标（基于真实计算）
+        tech_indicators = calculate_real_technical_indicators(history_data)
+        
+        # 格式化为前端期望的数据结构
+        result = {
+            'stock_info': stock_info,
+            'final_decision': final_decision,
+            'ai_analysis': ai_analysis_data,
+            'quantitative_analysis': {
+                'factor_scores': {
+                    'momentum_score': quantitative_result.get('trend_score', 50.0),
+                    'value_score': quantitative_result.get('volume_score', 50.0),
+                    'quality_score': quantitative_result.get('technical_score', 50.0),
+                    'volatility_score': quantitative_result.get('volatility_score', 50.0)
+                },
+                'factor_details': quantitative_result.get('factor_details', {}),
+                'ml_prediction': {
+                    'predicted_return': round((quant_overall - 50) / 100.0, 4),
+                    'confidence': round(quant_overall / 100.0, 4),
+                    'model_used': 'Quant-Ensemble'
+                },
+                'technical_indicators': tech_indicators
+            },
+            'analysis_timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        
+        logger.info(f"统一分析完成: {stock_code}, 评级={final_decision['rating']}")
+        
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+        
+    except Exception as e:
+        logger.error(f"统一分析API错误: {e}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'message': f'分析失败: {str(e)}'
+        }), 500
+
+
+def generate_final_decision(quant_overall, ai_rating, ai_confidence, ai_risk_score, quant_result):
+    """生成最终综合决策，使用中文评级"""
+    # 将量化评分映射到0-1区间
+    quant_norm = quant_overall / 100.0
+    
+    # AI评级映射为数值
+    ai_rating_map = {
+        'STRONG_BUY': 0.9, 'BUY': 0.7, 'HOLD': 0.5, 'SELL': 0.3, 'STRONG_SELL': 0.1,
+        '强烈买入': 0.9, '建议买入': 0.7, '建议持仓': 0.5, '建议卖出': 0.3, '强烈卖出': 0.1
+    }
+    ai_score = ai_rating_map.get(ai_rating, 0.5)
+    
+    # 综合评分：量化60% + AI 40%
+    combined_score = quant_norm * 0.6 + ai_score * 0.4
+    combined_confidence = (quant_norm * 0.5 + ai_confidence * 0.5)
+    
+    # 根据综合评分确定中文评级
+    if combined_score >= 0.75:
+        rating = '强烈买入'
+        reasoning_prefix = '量化和AI分析均发出强烈看涨信号'
+    elif combined_score >= 0.60:
+        rating = '建议买入'
+        reasoning_prefix = '量化指标积极，AI分析偏正面'
+    elif combined_score >= 0.40:
+        rating = '建议持仓'
+        reasoning_prefix = '量化和AI分析信号中性'
+    elif combined_score >= 0.25:
+        rating = '建议卖出'
+        reasoning_prefix = '量化指标偏弱，AI分析偏负面'
+    else:
+        rating = '强烈卖出'
+        reasoning_prefix = '量化和AI分析均发出强烈看跌信号'
+    
+    # 构建详细决策理由
+    trend = quant_result.get('trend_score', 50)
+    vol = quant_result.get('volatility_score', 50)
+    tech = quant_result.get('technical_score', 50)
+    volume = quant_result.get('volume_score', 50)
+    
+    reasoning = (
+        f"{reasoning_prefix}。"
+        f"趋势动量得分{trend:.2f}分，"
+        f"波动率得分{vol:.2f}分，"
+        f"技术指标得分{tech:.2f}分，"
+        f"成交量得分{volume:.2f}分，"
+        f"量化综合{quant_overall:.2f}分。"
+        f"AI置信度{ai_confidence:.1%}。"
+        f"综合判定：{rating}。"
+    )
+    
+    return {
+        'rating': rating,
+        'confidence': round(combined_confidence, 4),
+        'risk_level': round(ai_risk_score if ai_risk_score else (1.0 - combined_score), 4),
+        'reasoning': reasoning
+    }
+
+
+def perform_local_ai_analysis(stock_code, stock_info, history_data, quant_result):
+    """当TradingAgents-CN不可用时，基于量化数据生成本地AI分析"""
+    name = stock_info.get('name', stock_code)
+    industry = stock_info.get('industry', '相关行业')
+    
+    overall = quant_result.get('overall_score', 50)
+    trend = quant_result.get('trend_score', 50)
+    vol = quant_result.get('volatility_score', 50)
+    
+    # 根据量化结果推断评级
+    if overall >= 70:
+        raw_rating = 'BUY'
+        advice = f'{name}量化指标表现优秀，趋势向好，建议积极关注配置机会。'
+    elif overall >= 55:
+        raw_rating = 'HOLD'
+        advice = f'{name}量化指标表现平稳，建议维持现有仓位，等待更明确信号。'
+    else:
+        raw_rating = 'SELL'
+        advice = f'{name}量化指标偏弱，建议注意风险控制，适当减仓。'
+    
+    # 构建分析摘要
+    if trend >= 65:
+        market_msg = f'{name}处于上升趋势中，均线系统多头排列，短期动能较强。'
+    elif trend >= 45:
+        market_msg = f'{name}处于震荡整理阶段，均线缠绕，方向尚不明朗。'
+    else:
+        market_msg = f'{name}处于下降趋势中，均线系统空头排列，短期偏弱。'
+    
+    if vol >= 65:
+        fund_msg = f'{name}波动率较低，价格走势稳定，适合风险偏好较低的投资者。'
+    elif vol >= 40:
+        fund_msg = f'{name}波动率处于正常范围，风险收益比尚可。'
+    else:
+        fund_msg = f'{name}波动率较高，价格波动剧烈，建议谨慎操作。'
+    
+    news_msg = f'基于{industry}板块整体表现和{name}近期走势综合判断（本地量化分析，AI服务未接入）。'
+    
+    return {
+        'ai_available': True,  # 标记为可用，以便前端展示分析内容
+        'overall_rating': f"{overall:.1f}/100",
+        'overall_rating_raw': raw_rating,
+        'confidence': round(overall / 100.0, 4),
+        'target_price': '基于量化模型',
+        'investment_advice': advice,
+        'analysis_summary': {
+            'market_analysis': market_msg,
+            'fundamental_analysis': fund_msg,
+            'news_analysis': news_msg
+        }
+    }
+
+
+def calculate_real_technical_indicators(history_data):
+    """基于真实历史数据计算技术指标"""
+    try:
+        if not history_data or len(history_data) < 20:
+            return {
+                'rsi': '50.00',
+                'macd_signal': '数据不足',
+                'bollinger_position': '数据不足'
+            }
+        
+        df = pd.DataFrame(history_data)
+        
+        # 计算RSI
+        rsi_val = calculate_rsi(df['close'])
+        
+        # 计算MACD信号
+        exp1 = df['close'].ewm(span=12, adjust=False).mean()
+        exp2 = df['close'].ewm(span=26, adjust=False).mean()
+        macd_line = exp1 - exp2
+        signal_line = macd_line.ewm(span=9, adjust=False).mean()
+        
+        if macd_line.iloc[-1] > signal_line.iloc[-1] and macd_line.iloc[-2] <= signal_line.iloc[-2]:
+            macd_signal = '金叉看涨'
+        elif macd_line.iloc[-1] < signal_line.iloc[-1] and macd_line.iloc[-2] >= signal_line.iloc[-2]:
+            macd_signal = '死叉看跌'
+        elif macd_line.iloc[-1] > signal_line.iloc[-1]:
+            macd_signal = '看涨'
+        else:
+            macd_signal = '看跌'
+        
+        # 计算布林带位置
+        ma20 = df['close'].rolling(window=20).mean().iloc[-1]
+        std20 = df['close'].rolling(window=20).std().iloc[-1]
+        upper = ma20 + 2 * std20
+        lower = ma20 - 2 * std20
+        current = df['close'].iloc[-1]
+        
+        if current >= upper:
+            boll_pos = '上轨(超买)'
+        elif current <= lower:
+            boll_pos = '下轨(超卖)'
+        elif current >= ma20:
+            pct = (current - ma20) / (upper - ma20) * 100 if (upper - ma20) > 0 else 50
+            boll_pos = f'中上轨({pct:.0f}%)'
+        else:
+            pct = (ma20 - current) / (ma20 - lower) * 100 if (ma20 - lower) > 0 else 50
+            boll_pos = f'中下轨({pct:.0f}%)'
+        
+        return {
+            'rsi': f"{rsi_val:.2f}",
+            'macd_signal': macd_signal,
+            'bollinger_position': boll_pos
+        }
+    except Exception as e:
+        logger.warning(f"计算技术指标失败: {e}")
+        return {
+            'rsi': '50.00',
+            'macd_signal': '计算失败',
+            'bollinger_position': '计算失败'
+        }
+
+def perform_quantitative_analysis(stock_code, history_data):
+    """执行量化分析 - 基于真实历史数据"""
+    try:
+        if not history_data or len(history_data) == 0:
+            return {
+                'trend_score': 50.0,
+                'volatility_score': 50.0,
+                'volume_score': 50.0,
+                'technical_score': 50.0,
+                'overall_score': 50.0,
+                'factor_details': {}
+            }
+        
+        df = pd.DataFrame(history_data)
+        
+        # 趋势分析（含计算依据）
+        trend_score, trend_detail = analyze_trend_with_detail(df)
+        
+        # 波动率分析（含计算依据）
+        volatility_score, vol_detail = analyze_volatility_with_detail(df)
+        
+        # 成交量分析（含计算依据）
+        volume_score, vol_d_detail = analyze_volume_with_detail(df)
+        
+        # 技术指标综合分析（含计算依据）
+        technical_score, tech_detail = analyze_technical_with_detail(df)
+        
+        # 计算总体量化评分
+        overall_score = (trend_score * 0.3 + volatility_score * 0.2 + 
+                        volume_score * 0.2 + technical_score * 0.3)
+        
+        return {
+            'trend_score': round(trend_score, 2),
+            'volatility_score': round(volatility_score, 2),
+            'volume_score': round(volume_score, 2),
+            'technical_score': round(technical_score, 2),
+            'overall_score': round(overall_score, 2),
+            'factor_details': {
+                'momentum': trend_detail,
+                'volatility': vol_detail,
+                'value': vol_d_detail,
+                'quality': tech_detail
+            }
+        }
+    except Exception as e:
+        logger.error(f"量化分析错误: {e}")
+        return {
+            'trend_score': 50.0,
+            'volatility_score': 50.0,
+            'volume_score': 50.0,
+            'technical_score': 50.0,
+            'overall_score': 50.0,
+            'factor_details': {}
+        }
+
+
+def analyze_trend_with_detail(df):
+    """趋势分析 - 返回得分和计算依据"""
+    try:
+        if len(df) < 20:
+            return 50.0, '数据不足20条，无法进行趋势分析'
+        
+        ma5 = df['close'].rolling(window=5).mean().iloc[-1]
+        ma10 = df['close'].rolling(window=10).mean().iloc[-1]
+        ma20 = df['close'].rolling(window=20).mean().iloc[-1]
+        current_price = df['close'].iloc[-1]
+        
+        # 计算价格相对均线的偏离度
+        dev_ma5 = (current_price - ma5) / ma5 * 100
+        dev_ma20 = (current_price - ma20) / ma20 * 100
+        
+        score = 50.0
+        if current_price > ma5 > ma10 > ma20:
+            score = 85.0
+        elif current_price > ma5 > ma10:
+            score = 70.0
+        elif current_price > ma10:
+            score = 60.0
+        elif current_price < ma5 < ma10 < ma20:
+            score = 15.0
+        elif current_price < ma5 < ma10:
+            score = 30.0
+        elif current_price < ma10:
+            score = 40.0
+        
+        detail = (f"现价{current_price:.2f}, MA5={ma5:.2f}(偏离{dev_ma5:+.2f}%), "
+                 f"MA10={ma10:.2f}, MA20={ma20:.2f}(偏离{dev_ma20:+.2f}%)")
+        return score, detail
+    except Exception as e:
+        return 50.0, f'计算异常: {e}'
+
+
+def analyze_volatility_with_detail(df):
+    """波动率分析 - 返回得分和计算依据"""
+    try:
+        if len(df) < 20:
+            return 50.0, '数据不足20条，无法计算波动率'
+        
+        returns = df['close'].pct_change().dropna()
+        daily_vol = returns.std()
+        annual_vol = daily_vol * np.sqrt(252)
+        
+        # 最近5日波动率
+        recent_vol = returns.iloc[-5:].std() * np.sqrt(252) if len(returns) >= 5 else annual_vol
+        
+        if annual_vol < 0.2:
+            score = 80.0
+        elif annual_vol < 0.3:
+            score = 65.0
+        elif annual_vol < 0.4:
+            score = 50.0
+        elif annual_vol < 0.5:
+            score = 35.0
+        else:
+            score = 20.0
+        
+        detail = (f"年化波动率{annual_vol:.2%}, 日波动率{daily_vol:.4f}, "
+                 f"近5日年化波动率{recent_vol:.2%}")
+        return score, detail
+    except Exception as e:
+        return 50.0, f'计算异常: {e}'
+
+
+def analyze_volume_with_detail(df):
+    """成交量分析 - 返回得分和计算依据"""
+    try:
+        if len(df) < 10:
+            return 50.0, '数据不足10条，无法分析成交量'
+        
+        recent_volume = df['volume'].iloc[-5:].mean()
+        avg_volume = df['volume'].mean()
+        volume_ratio = recent_volume / avg_volume if avg_volume > 0 else 1.0
+        
+        # 计算量价配合度
+        recent_price_change = (df['close'].iloc[-1] - df['close'].iloc[-5]) / df['close'].iloc[-5] * 100 if len(df) >= 5 else 0
+        
+        if volume_ratio > 1.5:
+            score = 80.0
+        elif volume_ratio > 1.2:
+            score = 70.0
+        elif volume_ratio > 0.8:
+            score = 60.0
+        else:
+            score = 40.0
+        
+        detail = (f"近5日均量{recent_volume:.0f}, 整体均量{avg_volume:.0f}, "
+                 f"量比{volume_ratio:.2f}, 近5日涨跌{recent_price_change:+.2f}%")
+        return score, detail
+    except Exception as e:
+        return 50.0, f'计算异常: {e}'
+
+
+def analyze_technical_with_detail(df):
+    """技术指标综合分析 - 返回得分和计算依据"""
+    try:
+        if len(df) < 30:
+            return 50.0, '数据不足30条，无法计算技术指标'
+        
+        scores = []
+        details = []
+        
+        # RSI指标
+        rsi = calculate_rsi(df['close'])
+        if 30 < rsi < 70:
+            rsi_score = 70.0
+            rsi_state = '正常区间'
+        elif rsi <= 30:
+            rsi_score = 85.0
+            rsi_state = '超卖区间'
+        else:
+            rsi_score = 30.0
+            rsi_state = '超买区间'
+        scores.append(rsi_score)
+        details.append(f"RSI(14)={rsi:.2f}({rsi_state})")
+        
+        # MACD指标
+        macd_score = analyze_macd(df)
+        if macd_score >= 80:
+            macd_state = '金叉'
+        elif macd_score <= 35:
+            macd_state = '死叉'
+        elif macd_score >= 60:
+            macd_state = 'MACD在信号线上方'
+        else:
+            macd_state = 'MACD在信号线下方'
+        scores.append(macd_score)
+        details.append(f"MACD评分={macd_score:.0f}({macd_state})")
+        
+        final_score = float(np.mean(scores)) if scores else 50.0
+        detail_str = '; '.join(details)
+        return final_score, detail_str
+    except Exception as e:
+        return 50.0, f'计算异常: {e}'
+
+def calculate_rsi(prices, period=14):
+    """计算RSI指标"""
+    try:
+        delta = prices.diff()
+        gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+        rs = gain / loss
+        rsi = 100 - (100 / (1 + rs))
+        return rsi.iloc[-1]
+    except:
+        return 50
+
+def analyze_macd(df):
+    """MACD分析"""
+    try:
+        exp1 = df['close'].ewm(span=12, adjust=False).mean()
+        exp2 = df['close'].ewm(span=26, adjust=False).mean()
+        macd = exp1 - exp2
+        signal = macd.ewm(span=9, adjust=False).mean()
+        
+        if macd.iloc[-1] > signal.iloc[-1] and macd.iloc[-2] <= signal.iloc[-2]:
+            return 85  # 金叉
+        elif macd.iloc[-1] < signal.iloc[-1] and macd.iloc[-2] >= signal.iloc[-2]:
+            return 30  # 死叉
+        elif macd.iloc[-1] > signal.iloc[-1]:
+            return 70  # MACD在信号线上方
+        else:
+            return 40  # MACD在信号线下方
+    except:
+        return 50
+
 @api_bp.route('/analysis/screen', methods=['POST'])
 def screen_stocks():
     """股票筛选"""

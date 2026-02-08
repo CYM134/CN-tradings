@@ -1,16 +1,16 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API测试页面</title>
-    <script src="https://cdn.jsdelivr.net/npm/axios@1.5.0/dist/axios.min.js"></script>
-</head>
-<body>
-    <h1>API测试页面</h1>
+{% extends "base.html" %}
+
+{% block title %}API测试页面 - 股票分析系统{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">API测试页面</h1>
     <div id="results"></div>
-    
-    <script>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
         // API请求函数
         async function apiRequest(url, options = {}) {
             try {
@@ -87,5 +87,4 @@
         // 页面加载后自动测试
         window.onload = testAPI;
     </script>
-</body>
-</html> 
+{% endblock %} 

@@ -480,12 +480,17 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.backtest') }}">
+                            <i class="fas fa-history me-1"></i>策略回测
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.screen') }}">
                             <i class="fas fa-filter me-1"></i>选股筛选
                         </a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-bolt me-1"></i>实时分析
                         </a>
                         <ul class="dropdown-menu">
